@@ -1,0 +1,19 @@
+{
+  "name": "flagpole-api",
+  "version": "1.0.0",
+  "description": "FlagPole Api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/flagpole-corp/flagpole-api.git"
+  },
+  "author": "FlagPole Corp",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/flagpole-corp/flagpole-api/issues"
+  },
+  "homepage": "https://github.com/flagpole-corp/flagpole-api#readme"
+}
