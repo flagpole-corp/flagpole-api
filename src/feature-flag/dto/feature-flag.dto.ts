@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsString,
   IsBoolean,
@@ -8,24 +8,25 @@ import {
 } from "class-validator";
 
 export class CreateFeatureFlagDto {
-  @ApiProperty()
+  @ApiProperty({ example: "new-feature" })
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: "Enables the new awesome feature" })
   @IsString()
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: false })
   @IsBoolean()
-  isEnabled: boolean;
+  @IsOptional()
+  isEnabled?: boolean;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsObject()
   @IsOptional()
   conditions?: Record<string, any>;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ example: ["development", "staging"] })
   @IsArray()
   @IsOptional()
   environments?: string[];

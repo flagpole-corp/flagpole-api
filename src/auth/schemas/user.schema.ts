@@ -30,7 +30,13 @@ export class User extends Document {
   @Prop()
   lastName?: string;
 
-  @Prop({ select: false }) // Exclude password from query results by default
+  @Prop({
+    select: false, // Excludes password from queries by default
+    required: function () {
+      // Only required for local auth
+      return this.provider === "local";
+    },
+  })
   password?: string;
 
   @Prop({
@@ -64,3 +70,44 @@ export class User extends Document {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.index({ email: 1, provider: 1 });
+
+UserSchema.methods.hasRole = function (role: UserRole): boolean {
+  return this.roles.includes(role);
+};
+
+UserSchema.methods.isAdmin = function (): boolean {
+  return this.roles.includes(UserRole.ADMIN);
+};
+
+UserSchema.pre("save", function (next) {
+  // You can add any pre-save logic here
+  // For example, updating lastLogin if it's a new user
+  if (this.isNew) {
+    this.lastLogin = new Date();
+  }
+  next();
+});
+
+export interface UserMethods {
+  hasRole(role: UserRole): boolean;
+  isAdmin(): boolean;
+}
+
+export type UserDocument = User & UserMethods & Document;
+
+// Export interfaces for DTO creation
+export interface UserResponse {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  roles: UserRole[];
+  provider: AuthProvider;
+  isActive: boolean;
+  lastLogin?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}

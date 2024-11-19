@@ -4,18 +4,14 @@ import { FeatureFlagController } from "./feature-flag.controller";
 import { FeatureFlagService } from "./feature-flag.service";
 import { FeatureFlagGateway } from "./feature-flag.gateway";
 import { FeatureFlag, FeatureFlagSchema } from "./schemas/feature-flag.schema";
-import { JwtModule } from "@nestjs/jwt";
+import { AuthModule } from "../auth/auth.module";
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: FeatureFlag.name, schema: FeatureFlagSchema },
     ]),
-    JwtModule.registerAsync({
-      useFactory: () => ({
-        secret: process.env.JWT_SECRET,
-      }),
-    }),
+    AuthModule, // Import AuthModule to use JwtAuthGuard
   ],
   controllers: [FeatureFlagController],
   providers: [FeatureFlagService, FeatureFlagGateway],

@@ -1,14 +1,14 @@
 import {
   WebSocketGateway,
   WebSocketServer,
-  SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from "@nestjs/websockets";
 import { UseGuards } from "@nestjs/common";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { WsJwtGuard } from "../auth/guards/ws-jwt.guard";
-import { FeatureFlagService } from "./feature-flag.service";
+import { FeatureFlag } from "./schemas/feature-flag.schema";
+import { AuthenticatedSocket } from "../types/socket";
 
 @WebSocketGateway({
   cors: {
@@ -20,21 +20,28 @@ export class FeatureFlagGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  private server: Server;
 
-  constructor(private featureFlagService: FeatureFlagService) {}
-
-  async handleConnection(client: Socket) {
-    const flags = await this.featureFlagService.findAll();
-    client.emit("featureFlags", flags);
+  handleConnection(client: AuthenticatedSocket) {
+    console.log(`Client connected: ${client.user?.email}`);
   }
 
-  handleDisconnect(client: Socket) {
-    console.log("Client disconnected:", client.id);
+  handleDisconnect(client: AuthenticatedSocket) {
+    console.log(`Client disconnected: ${client.user?.email}`);
   }
 
-  // Broadcast feature flag updates to all connected clients
-  async broadcastFlagUpdate(flag: any) {
+  // Method to emit initial flags to a client
+  async emitInitialFlags(flags: FeatureFlag[]) {
+    this.server.emit("featureFlags", flags);
+  }
+
+  // Method to emit flag updates to all clients
+  async emitFlagUpdate(flag: FeatureFlag) {
     this.server.emit("featureFlagUpdate", flag);
+  }
+
+  // Method to emit flag deletion to all clients
+  async emitFlagDeletion(flagId: string) {
+    this.server.emit("featureFlagDelete", flagId);
   }
 }

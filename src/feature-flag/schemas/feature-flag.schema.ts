@@ -17,6 +17,12 @@ export class FeatureFlag extends Document {
 
   @Prop({ type: [String], default: [] })
   environments: string[];
+
+  @Prop()
+  createdAt?: Date;
+
+  @Prop()
+  updatedAt?: Date;
 }
 
 export const FeatureFlagSchema = SchemaFactory.createForClass(FeatureFlag);
