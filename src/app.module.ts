@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { FeatureFlagModule } from "./feature-flag/feature-flag.module";
 import { AuthModule } from "./auth/auth.module";
+import { OrganizationsModule } from "./organizations/organizations.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from "./auth/auth.module";
     }),
     FeatureFlagModule,
     AuthModule,
+    OrganizationsModule,
   ],
 })
 export class AppModule {}

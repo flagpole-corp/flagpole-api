@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import { Document, Schema as MongooseSchema } from "mongoose";
+import { Organization } from "../../organizations/schemas/organization.schema";
 
 @Schema({ timestamps: true })
 export class FeatureFlag extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   name: string;
 
   @Prop({ required: true })
@@ -12,17 +13,27 @@ export class FeatureFlag extends Document {
   @Prop({ required: true, default: false })
   isEnabled: boolean;
 
+  // Link to organization
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: "Organization",
+    required: true,
+    index: true,
+  })
+  organization: Organization;
+
   @Prop({ type: Object, default: {} })
   conditions: Record<string, any>;
 
   @Prop({ type: [String], default: [] })
   environments: string[];
 
+  // Composite unique index for name + organization
   @Prop()
-  createdAt?: Date;
-
-  @Prop()
-  updatedAt?: Date;
+  uniqueKey?: string;
 }
 
 export const FeatureFlagSchema = SchemaFactory.createForClass(FeatureFlag);
+
+// Create a compound unique index for name + organization
+FeatureFlagSchema.index({ name: 1, organization: 1 }, { unique: true });
