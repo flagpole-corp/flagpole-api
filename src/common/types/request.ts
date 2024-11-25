@@ -1,10 +1,14 @@
 import { Request } from "express";
-import { UserDocument } from "../../users/schemas/user.schema";
+import { Types } from "mongoose";
 
+export interface RequestUser {
+  userId: string;
+  email: string;
+  currentOrganization: string;
+  currentProject?: string;
+}
 export interface RequestWithUser extends Request {
-  user: {
-    userId: string;
-    email: string;
-    roles: string[];
-  };
+  user: RequestUser;
+  organizationId?: Types.ObjectId;
+  projectId?: Types.ObjectId;
 }

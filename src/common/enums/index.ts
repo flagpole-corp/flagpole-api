@@ -14,3 +14,16 @@ export enum SubscriptionStatus {
   TRIAL = "trial",
   INACTIVE = "inactive",
 }
+
+export enum ProjectStatus {
+  ACTIVE = "active",
+  ARCHIVED = "archived",
+  DELETED = "deleted",
+}
+
+export enum ProjectRole {
+  OWNER = "owner",
+  ADMIN = "admin",
+  MEMBER = "member",
+  VIEWER = "viewer",
+}

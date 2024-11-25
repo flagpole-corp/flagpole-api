@@ -30,18 +30,15 @@ export class FeatureFlagGateway
     console.log(`Client disconnected: ${client.user?.email}`);
   }
 
-  // Method to emit initial flags to a client
-  async emitInitialFlags(flags: FeatureFlag[]) {
-    this.server.emit("featureFlags", flags);
-  }
-
-  // Method to emit flag updates to all clients
   async emitFlagUpdate(flag: FeatureFlag) {
     this.server.emit("featureFlagUpdate", flag);
   }
 
-  // Method to emit flag deletion to all clients
   async emitFlagDeletion(flagId: string) {
     this.server.emit("featureFlagDelete", flagId);
+  }
+
+  async emitInitialFlags(flags: FeatureFlag[]) {
+    this.server.emit("featureFlags", flags);
   }
 }

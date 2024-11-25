@@ -4,16 +4,17 @@ import { FeatureFlagController } from "./feature-flag.controller";
 import { FeatureFlagService } from "./feature-flag.service";
 import { FeatureFlagGateway } from "./feature-flag.gateway";
 import { FeatureFlag, FeatureFlagSchema } from "./schemas/feature-flag.schema";
-import { AuthModule } from "../auth/auth.module";
+import { Project, ProjectSchema } from "../projects/schemas/project.schema";
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: FeatureFlag.name, schema: FeatureFlagSchema },
+      { name: Project.name, schema: ProjectSchema },
     ]),
-    AuthModule, // Import AuthModule to use JwtAuthGuard
   ],
   controllers: [FeatureFlagController],
   providers: [FeatureFlagService, FeatureFlagGateway],
+  exports: [FeatureFlagService],
 })
 export class FeatureFlagModule {}
