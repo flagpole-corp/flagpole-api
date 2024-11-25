@@ -11,12 +11,12 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
-    "seed": "ts-node src/scripts/seeds/seed.ts",
-    "seed:org": "ts-node scripts/seeds/organization.seed.ts",
-    "seed:users": "ts-node scripts/seeds/user.seed.ts",
-    "seed:projects": "ts-node scripts/seeds/project.seed.ts",
-    "seed:flags": "ts-node scripts/seeds/feature-flag.seed.ts",
-    "seed:indexes": "ts-node scripts/seeds/indexes.seed.ts"
+    "seed": "npx ts-node scripts/seeds/seed.ts",
+    "seed:org": "npx ts-node scripts/seeds/organization.seed.ts",
+    "seed:users": "npx ts-node scripts/seeds/user.seed.ts",
+    "seed:projects": "npx ts-node scripts/seeds/project.seed.ts",
+    "seed:flags": "npx ts-node scripts/seeds/feature-flag.seed.ts",
+    "seed:indexes": "npx ts-node scripts/seeds/indexes.seed.ts"
   },
   "repository": {
     "type": "git",

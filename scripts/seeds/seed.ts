@@ -7,7 +7,7 @@ import { createIndexes } from "./indexes.seed";
 import * as dotenv from "dotenv";
 import { join } from "path";
 
-dotenv.config({ path: join(__dirname, "../.env") });
+dotenv.config({ path: join(__dirname, "../../.env") });
 
 async function seed() {
   const uri = process.env.MONGODB_URI;
