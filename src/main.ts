@@ -6,8 +6,13 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: ["http://localhost:5173"], // frontend URL
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true, // Important for cookies/auth
+    allowedHeaders: ["Content-Type", "Authorization"],
+  });
   app.useGlobalPipes(new ValidationPipe());
-  app.enableCors();
 
   const config = new DocumentBuilder()
     .setTitle("Feature Flag Service")
