@@ -6,6 +6,7 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.setGlobalPrefix("api");
   app.enableCors({
     origin: ["http://localhost:5173"], // frontend URL
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -23,7 +24,8 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document);
-
-  await app.listen(process.env.PORT ?? 5000);
+  const port = process.env.PORT ?? 5000;
+  await app.listen(port);
+  console.log(`🚀 Application is running on: http://localhost:${port}`);
 }
 bootstrap();
