@@ -4,26 +4,39 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { FeatureFlagModule } from "./feature-flag/feature-flag.module";
 import { AuthModule } from "./auth/auth.module";
 import { OrganizationsModule } from "./organizations/organizations.module";
+import { UsersModule } from "./users/users.module";
 import { OrganizationContextMiddleware } from "./common/middleware/organization-context.middleware";
+import { MiddlewareModule } from "./common/middleware/middleware.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // Make config globally available
+      isGlobal: true,
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>("MONGODB_URI"),
-      }),
+      useFactory: (configService: ConfigService) => {
+        const uri = configService.get<string>("MONGODB_URI");
+        if (!uri) {
+          throw new Error("MONGODB_URI is not defined");
+        }
+        return {
+          uri,
+        };
+      },
       inject: [ConfigService],
     }),
-    FeatureFlagModule,
+    MiddlewareModule,
     AuthModule,
     OrganizationsModule,
+    FeatureFlagModule,
   ],
 })
 export class AppModule {
+  constructor(
+    private organizationContextMiddleware: OrganizationContextMiddleware
+  ) {}
+
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(OrganizationContextMiddleware)

@@ -14,10 +14,11 @@ import { GoogleStrategy } from "./strategies/google.strategy";
   imports: [
     PassportModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>("JWT_SECRET"),
-        signOptions: { expiresIn: "1d" },
+        signOptions: {
+          expiresIn: "1d",
+        },
       }),
       inject: [ConfigService],
     }),
@@ -25,6 +26,6 @@ import { GoogleStrategy } from "./strategies/google.strategy";
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
-  exports: [AuthService, JwtModule], // Export JwtModule if other modules need it
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

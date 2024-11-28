@@ -7,9 +7,11 @@ import {
   OrganizationSchema,
 } from "./schemas/organization.schema";
 import { User, UserSchema } from "../users/schemas/user.schema";
+import { UsersModule } from "src/users/users.module";
 
 @Module({
   imports: [
+    UsersModule,
     MongooseModule.forFeature([
       { name: Organization.name, schema: OrganizationSchema },
       { name: User.name, schema: UserSchema },
