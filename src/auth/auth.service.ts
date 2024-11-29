@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
@@ -39,22 +39,16 @@ export class AuthService {
     return null;
   }
 
-  async login(user: UserDocument) {
+  async login(user: any) {
     const payload = {
       email: user.email,
       sub: user._id,
-      roles: user.roles,
+      currentOrganization: user.currentOrganization,
     };
 
     return {
       access_token: this.jwtService.sign(payload),
-      user: {
-        id: user._id,
-        email: user.email,
-        roles: user.roles,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      user: user, // We already cleaned the user object in validateUser
     };
   }
 
@@ -94,5 +88,19 @@ export class AuthService {
       provider: "local",
     });
     return user.save();
+  }
+
+  async getCurrentUser(userId: string) {
+    const user = await this.userModel
+      .findById(userId)
+      .select("-password") // Exclude password
+      .populate("organizations.organization", "name slug subscriptionStatus")
+      .exec();
+
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    return user;
   }
 }

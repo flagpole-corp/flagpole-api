@@ -2,9 +2,16 @@ import { Controller, Post, UseGuards, Request, Get } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { Request as ExpressRequest } from "express";
 import { AuthService } from "./auth.service";
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 import { UserDocument } from "./schemas/user.schema";
 import { LoginDto } from "./dto/login.dto";
+import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 
 interface RequestWithUser extends ExpressRequest {
   user: UserDocument;
@@ -48,5 +55,17 @@ export class AuthController {
   })
   async googleAuthRedirect(@Request() req: RequestWithUser) {
     return this.authService.login(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("me")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get current user information" })
+  @ApiResponse({
+    status: 200,
+    description: "Returns current user information",
+  })
+  async getCurrentUser(@Request() req: RequestWithUser) {
+    return this.authService.getCurrentUser(req.user._id.toString());
   }
 }
