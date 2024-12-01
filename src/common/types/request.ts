@@ -9,9 +9,9 @@ export interface RequestUser {
 }
 
 export interface AuthenticatedUser {
-  _id: Types.ObjectId | string;
+  userId: string;
   email: string;
-  currentOrganization?: Types.ObjectId | string;
+  currentOrganization?: string;
 }
 
 export interface RequestWithUser extends Request {

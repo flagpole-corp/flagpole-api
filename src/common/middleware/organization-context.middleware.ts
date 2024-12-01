@@ -4,6 +4,7 @@ import { Model } from "mongoose";
 import { User } from "../../users/schemas/user.schema";
 import { RequestWithUser } from "../types/request";
 import { Response, NextFunction } from "express";
+import { toObjectId } from "../utils/mongoose";
 
 @Injectable()
 export class OrganizationContextMiddleware implements NestMiddleware {
@@ -20,7 +21,7 @@ export class OrganizationContextMiddleware implements NestMiddleware {
       if (req.user?.userId) {
         const user = await this.userModel.findById(req.user.userId);
         if (user?.currentOrganization) {
-          req.organizationId = user.currentOrganization;
+          req.organizationId = toObjectId(user.currentOrganization.toString());
         }
       }
     } catch (error) {

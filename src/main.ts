@@ -11,7 +11,12 @@ async function bootstrap() {
     origin: ["http://localhost:5173"], // frontend URL
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true, // Important for cookies/auth
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-organization-id",
+      "x-project-id",
+    ],
   });
   app.useGlobalPipes(new ValidationPipe());
 

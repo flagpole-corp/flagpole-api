@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import { Document, Schema as MongooseSchema } from "mongoose";
+import { OrganizationRole } from "src/common/enums";
 
 export enum AuthProvider {
   LOCAL = "local",
@@ -67,6 +68,29 @@ export class User extends Document {
 
   @Prop()
   lastLogin?: Date;
+
+  @Prop([
+    {
+      organization: {
+        type: MongooseSchema.Types.ObjectId,
+        ref: "Organization",
+      },
+      role: {
+        type: String,
+        enum: OrganizationRole,
+        default: OrganizationRole.MEMBER,
+      },
+      joinedAt: { type: Date, default: Date.now },
+    },
+  ])
+  organizations: Array<{
+    organization: MongooseSchema.Types.ObjectId;
+    role: OrganizationRole;
+    joinedAt: Date;
+  }>;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: "Organization" })
+  currentOrganization?: MongooseSchema.Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
@@ -82,8 +106,6 @@ UserSchema.methods.isAdmin = function (): boolean {
 };
 
 UserSchema.pre("save", function (next) {
-  // You can add any pre-save logic here
-  // For example, updating lastLogin if it's a new user
   if (this.isNew) {
     this.lastLogin = new Date();
   }

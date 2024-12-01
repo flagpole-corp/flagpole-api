@@ -66,6 +66,6 @@ export class AuthController {
     description: "Returns current user information",
   })
   async getCurrentUser(@Request() req: RequestWithUser) {
-    return this.authService.getCurrentUser(req.user._id.toString());
+    return this.authService.getCurrentUser(req.user._id);
   }
 }

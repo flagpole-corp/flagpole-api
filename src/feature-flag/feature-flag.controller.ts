@@ -53,6 +53,9 @@ export class FeatureFlagController {
     if (!projectId) {
       throw new UnauthorizedException("Project ID is required");
     }
+    if (!req.user.currentOrganization) {
+      throw new UnauthorizedException("Organization context is required");
+    }
     return this.featureFlagService.create(
       createFeatureFlagDto,
       projectId,
@@ -78,6 +81,9 @@ export class FeatureFlagController {
   ): Promise<FeatureFlag[]> {
     if (!projectId) {
       throw new UnauthorizedException("Project ID is required");
+    }
+    if (!req.user.currentOrganization) {
+      throw new UnauthorizedException("Organization context is required");
     }
     return this.featureFlagService.findAll(
       projectId,
@@ -105,6 +111,9 @@ export class FeatureFlagController {
   ): Promise<FeatureFlag> {
     if (!projectId) {
       throw new UnauthorizedException("Project ID is required");
+    }
+    if (!req.user.currentOrganization) {
+      throw new UnauthorizedException("Organization context is required");
     }
     return this.featureFlagService.toggle(
       id,

@@ -7,6 +7,7 @@ import { OrganizationsModule } from "./organizations/organizations.module";
 import { UsersModule } from "./users/users.module";
 import { OrganizationContextMiddleware } from "./common/middleware/organization-context.middleware";
 import { MiddlewareModule } from "./common/middleware/middleware.module";
+import { ProjectsModule } from "./projects/projects.module";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MiddlewareModule } from "./common/middleware/middleware.module";
     AuthModule,
     OrganizationsModule,
     FeatureFlagModule,
+    ProjectsModule,
   ],
 })
 export class AppModule {

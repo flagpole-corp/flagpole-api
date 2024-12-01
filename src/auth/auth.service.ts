@@ -39,16 +39,28 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
+  async login(user: UserDocument) {
+    if (!user.currentOrganization && user.organizations?.length > 0) {
+      user.currentOrganization = user.organizations[0].organization;
+      await user.save();
+    }
+
     const payload = {
       email: user.email,
-      sub: user._id,
-      currentOrganization: user.currentOrganization,
+      sub: user._id.toString(),
+      currentOrganization: user.currentOrganization?.toString(),
     };
+
+    console.log({ payload });
 
     return {
       access_token: this.jwtService.sign(payload),
-      user: user, // We already cleaned the user object in validateUser
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        currentOrganization: user.currentOrganization?.toString(),
+        organizations: user.organizations,
+      },
     };
   }
 
@@ -56,7 +68,6 @@ export class AuthService {
     let user = await this.userModel.findOne({ email: details.email });
 
     if (user) {
-      // Update googleId if it doesn't exist
       if (!user.googleId) {
         user.googleId = details.googleId;
         user = await user.save();
@@ -64,12 +75,13 @@ export class AuthService {
       return user;
     }
 
-    // Create new user if they don't exist
+    // Create new user
     const newUser = new this.userModel({
       email: details.email,
       googleId: details.googleId,
       provider: "google",
       roles: ["user"],
+      // You might want to create a default organization here
     });
 
     return newUser.save();
@@ -101,6 +113,17 @@ export class AuthService {
       throw new UnauthorizedException("User not found");
     }
 
-    return user;
+    console.log("getCurrentUser", { user });
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      currentOrganization: user.currentOrganization?.toString(),
+      organizations: user.organizations.map((org) => ({
+        ...org,
+        organization: org.organization.toString(),
+      })),
+    };
   }
 }
