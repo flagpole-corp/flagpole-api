@@ -14,15 +14,21 @@ export class OrganizationAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const userId = request.user.userId;
-    const organizationId =
-      request.params.organizationId || request.body.organizationId;
+    console.log("Starting guard check");
+
+    // Get _id instead of userId
+    const userId = request.user._id;
+    const organizationId = request.headers["x-organization-id"];
+
+    console.log("Guard Check:", { userId, organizationId });
 
     if (!organizationId) {
       throw new ForbiddenException("Organization ID is required");
     }
 
     const user = await this.userModel.findById(userId);
+    console.log("Found user:", user); // Debug log
+
     if (!user) {
       throw new ForbiddenException("User not found");
     }
@@ -30,6 +36,12 @@ export class OrganizationAuthGuard implements CanActivate {
     const isMember = user.organizations.some(
       (org) => org.organization.toString() === organizationId
     );
+
+    console.log("Is member check:", {
+      userOrgs: user.organizations.map((org) => org.organization.toString()),
+      requestedOrg: organizationId,
+      isMember,
+    });
 
     if (!isMember) {
       throw new ForbiddenException("User does not belong to this organization");

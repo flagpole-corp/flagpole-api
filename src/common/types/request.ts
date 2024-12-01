@@ -2,10 +2,15 @@ import { Request } from "express";
 import { Types } from "mongoose";
 
 export interface RequestUser {
-  userId: string;
+  _id: string | Types.ObjectId;
   email: string;
-  currentOrganization: string;
+  currentOrganization?: string | Types.ObjectId;
   currentProject?: string;
+  organizations: Array<{
+    organization: Types.ObjectId;
+    role: string;
+    joinedAt: Date;
+  }>;
 }
 
 export interface AuthenticatedUser {

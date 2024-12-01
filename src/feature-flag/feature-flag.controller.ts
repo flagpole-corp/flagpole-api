@@ -59,7 +59,7 @@ export class FeatureFlagController {
     return this.featureFlagService.create(
       createFeatureFlagDto,
       projectId,
-      req.user.currentOrganization
+      req.user.currentOrganization.toString()
     );
   }
 
@@ -87,7 +87,7 @@ export class FeatureFlagController {
     }
     return this.featureFlagService.findAll(
       projectId,
-      req.user.currentOrganization
+      req.user.currentOrganization.toString()
     );
   }
 
@@ -118,7 +118,7 @@ export class FeatureFlagController {
     return this.featureFlagService.toggle(
       id,
       projectId,
-      req.user.currentOrganization
+      req.user.currentOrganization.toString()
     );
   }
 }

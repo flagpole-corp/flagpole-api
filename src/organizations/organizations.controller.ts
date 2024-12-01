@@ -28,7 +28,7 @@ export class OrganizationsController {
   ) {
     return this.organizationsService.create(
       createOrganizationDto,
-      req.user.userId
+      req.user._id.toString()
     );
   }
 
@@ -52,7 +52,7 @@ export class OrganizationsController {
     @Param("id") organizationId: string
   ) {
     return this.organizationsService.switchUserOrganization(
-      req.user.userId,
+      req.user._id.toString(),
       organizationId
     );
   }

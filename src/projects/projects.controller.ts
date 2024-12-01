@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Request,
   UseGuards,
   Req,
   Param,
@@ -21,8 +22,16 @@ export class ProjectsController {
   constructor(private projectsService: ProjectsService) {}
 
   @Get()
-  async findAll(@CurrentOrganization() organizationId: string) {
-    return this.projectsService.findAll(organizationId);
+  async findAll(@Request() req: RequestWithUser) {
+    console.log("Headers:", req.headers); // Debug log
+    console.log("User:", req.user); // Debug log
+    console.log(
+      "Organization ID from header:",
+      req.headers["x-organization-id"]
+    ); // Debug log
+    return this.projectsService.findAll(
+      req.headers["x-organization-id"] as string
+    );
   }
 
   @Post()
@@ -34,7 +43,7 @@ export class ProjectsController {
     return this.projectsService.create(
       createProjectDto,
       organizationId,
-      req.user.userId
+      req.user._id.toString()
     );
   }
 }

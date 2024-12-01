@@ -18,8 +18,8 @@ export class OrganizationContextMiddleware implements NestMiddleware {
     next: NextFunction
   ): Promise<void> {
     try {
-      if (req.user?.userId) {
-        const user = await this.userModel.findById(req.user.userId);
+      if (req.user?._id.toString()) {
+        const user = await this.userModel.findById(req.user._id.toString());
         if (user?.currentOrganization) {
           req.organizationId = toObjectId(user.currentOrganization.toString());
         }
