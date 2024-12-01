@@ -1,4 +1,5 @@
 import { MongoClient, ObjectId } from "mongodb";
+import { userId1, userId2, testUserId } from "./user.seed"; // Import user IDs
 
 export const orgId = new ObjectId();
 
@@ -13,13 +14,19 @@ export async function seedOrganizations(db: any) {
       subscriptionStatus: "active",
       members: [
         {
-          user: Math.round(Math.random() * 10000),
+          user: userId1, // Use actual user ID
           role: "owner",
           joinedAt: new Date(),
           permissions: ["manage_members", "manage_projects", "manage_flags"],
         },
         {
-          user: Math.round(Math.random() * 10000),
+          user: userId2, // Use actual user ID
+          role: "member",
+          joinedAt: new Date(),
+          permissions: ["view_projects", "view_flags"],
+        },
+        {
+          user: testUserId, // Add test user
           role: "member",
           joinedAt: new Date(),
           permissions: ["view_projects", "view_flags"],
@@ -43,6 +50,13 @@ export async function seedOrganizations(db: any) {
     });
 
     console.log("Organizations seeded successfully!");
+    // Log IDs for verification
+    console.log("Organization ID:", orgId.toString());
+    console.log("User IDs:", {
+      admin: userId1.toString(),
+      dev: userId2.toString(),
+      test: testUserId.toString(),
+    });
   } catch (error) {
     console.error("Error seeding organizations:", error);
     throw error;

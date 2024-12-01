@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
-import { seedOrganizations } from "./organization.seed";
-import { seedUsers } from "./user.seed";
-import { seedProjects } from "./project.seed";
+import { orgId, seedOrganizations } from "./organization.seed";
+import { seedUsers, testUserId } from "./user.seed";
+import { projectId1, projectId2, seedProjects } from "./project.seed";
 import { seedFeatureFlags } from "./feature-flag.seed";
 import { createIndexes } from "./indexes.seed";
 import * as dotenv from "dotenv";
@@ -9,6 +9,7 @@ import { join } from "path";
 
 dotenv.config({ path: join(__dirname, "../../.env") });
 
+// src/scripts/seed.ts
 async function seed() {
   const uri = process.env.MONGODB_URI;
 
@@ -17,9 +18,6 @@ async function seed() {
     process.exit(1);
   }
 
-  console.log("Connecting to MongoDB..."); // Debug log
-  console.log(`URI: ${uri}`); // Debug log (be careful with this in production)
-
   let client;
   try {
     client = await MongoClient.connect(uri);
@@ -27,14 +25,34 @@ async function seed() {
 
     console.log("Connected to MongoDB successfully");
 
+    // Create indexes first to ensure unique constraints
+    await createIndexes(db);
+
+    // Clear all collections first
+    await Promise.all([
+      db.collection("organizations").deleteMany({}),
+      db.collection("users").deleteMany({}),
+      db.collection("projects").deleteMany({}),
+      db.collection("feature_flags").deleteMany({}),
+    ]);
+
     // Run seeds in order
     await seedOrganizations(db);
     await seedUsers(db);
     await seedProjects(db);
     await seedFeatureFlags(db);
-    await createIndexes(db);
 
-    console.log("Database seeded successfully!");
+    // Log some useful information
+    console.log("\nTest Data Summary:");
+    console.log("------------------");
+    console.log("Test User:");
+    console.log("  Email: user@test.com");
+    console.log("  Password: 1234");
+    console.log("\nIDs for verification:");
+    console.log("  Organization:", orgId.toString());
+    console.log("  Test User:", testUserId.toString());
+    console.log("  Project 1:", projectId1.toString());
+    console.log("  Project 2:", projectId2.toString());
   } catch (error) {
     console.error("Error seeding database:", error);
     process.exit(1);
