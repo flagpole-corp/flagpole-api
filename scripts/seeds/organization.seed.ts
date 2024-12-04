@@ -1,62 +1,67 @@
 import { MongoClient, ObjectId } from "mongodb";
-import { userId1, userId2, testUserId } from "./user.seed"; // Import user IDs
+import { Db } from "mongodb";
 
-export const orgId = new ObjectId();
+export const orgId = new ObjectId(); // Main test org
+export const orgIds = Array.from({ length: 9 }, () => new ObjectId()); // 9 more orgs
 
-export async function seedOrganizations(db: any) {
+export async function seedOrganizations(db: Db) {
   try {
     await db.collection("organizations").deleteMany({});
 
-    await db.collection("organizations").insertOne({
-      _id: orgId,
-      name: "Acme Corporation",
-      slug: "acme-corp",
-      subscriptionStatus: "active",
-      members: [
-        {
-          user: userId1, // Use actual user ID
-          role: "owner",
-          joinedAt: new Date(),
-          permissions: ["manage_members", "manage_projects", "manage_flags"],
+    const organizations = [
+      {
+        _id: orgId,
+        name: "Acme Corporation",
+        slug: "acme-corp",
+        subscriptionStatus: "active",
+        settings: {
+          defaultEnvironments: ["development", "staging", "production"],
+          allowedDomains: ["acme.com"],
+          notificationEmails: ["admin@acme.com"],
         },
-        {
-          user: userId2, // Use actual user ID
-          role: "member",
-          joinedAt: new Date(),
-          permissions: ["view_projects", "view_flags"],
+        subscription: {
+          status: "active",
+          plan: "pro",
+          startDate: new Date(),
+          maxProjects: 10,
+          maxMembers: 20,
         },
-        {
-          user: testUserId, // Add test user
-          role: "member",
-          joinedAt: new Date(),
-          permissions: ["view_projects", "view_flags"],
-        },
-      ],
-      settings: {
-        defaultEnvironments: ["development", "staging", "production"],
-        allowedDomains: ["acme.com"],
-        notificationEmails: ["admin@acme.com"],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
-      subscription: {
-        status: "active",
-        plan: "pro",
-        startDate: new Date(),
-        trialEndsAt: null,
-        maxProjects: 10,
-        maxMembers: 20,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
 
-    console.log("Organizations seeded successfully!");
-    // Log IDs for verification
-    console.log("Organization ID:", orgId.toString());
-    console.log("User IDs:", {
-      admin: userId1.toString(),
-      dev: userId2.toString(),
-      test: testUserId.toString(),
-    });
+      ...orgIds.map((id, index) => ({
+        _id: id,
+        name: `Test Organization ${index + 1}`,
+        slug: `test-org-${index + 1}`,
+        subscriptionStatus:
+          index < 3 ? "active" : index < 6 ? "trial" : "inactive",
+        settings: {
+          defaultEnvironments: ["development", "production"],
+          allowedDomains: [`org${index + 1}.com`],
+          notificationEmails: [`admin@org${index + 1}.com`],
+        },
+        subscription: {
+          status: index < 3 ? "active" : index < 6 ? "trial" : "inactive",
+          plan: index < 3 ? "pro" : index < 6 ? "basic" : "free",
+          startDate: new Date(Date.now() - index * 30 * 24 * 60 * 60 * 1000), // Different start dates
+          maxProjects: index < 3 ? 10 : 5,
+          maxMembers: index < 3 ? 20 : 10,
+        },
+        createdAt: new Date(Date.now() - index * 30 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(),
+      })),
+    ];
+
+    await db.collection("organizations").insertMany(organizations);
+    console.log(
+      "Created organizations:",
+      organizations.map((org) => ({
+        id: org._id.toString(),
+        name: org.name,
+        status: org.subscriptionStatus,
+      }))
+    );
   } catch (error) {
     console.error("Error seeding organizations:", error);
     throw error;

@@ -1,25 +1,28 @@
-import { ObjectId } from "mongodb";
+import { Db, ObjectId } from "mongodb";
 import * as bcrypt from "bcrypt";
-import { orgId } from "./organization.seed";
+import { orgId, orgIds } from "./organization.seed";
 
 export const userId1 = new ObjectId();
 export const userId2 = new ObjectId();
-export const testUserId = new ObjectId(); // Test user ID
 
-export async function seedUsers(db: any) {
+export const testUserId = new ObjectId();
+export const userIds = Array.from({ length: 19 }, () => new ObjectId()); // 19 more users
+
+export async function seedUsers(db: Db) {
   try {
     await db.collection("users").deleteMany({});
 
-    const hashedPassword = await bcrypt.hash("password123", 10);
-    const testUserPassword = await bcrypt.hash("1234", 10); // Test user password
+    const testUserPassword = await bcrypt.hash("1234", 10);
+    const defaultPassword = await bcrypt.hash("password123", 10);
 
-    await db.collection("users").insertMany([
+    const users = [
+      // Main test user
       {
-        _id: userId1,
-        email: "admin@acme.com",
-        password: hashedPassword,
-        firstName: "John",
-        lastName: "Doe",
+        _id: testUserId,
+        email: "user@test.com",
+        password: testUserPassword,
+        firstName: "Test",
+        lastName: "User",
         provider: "local",
         organizations: [
           {
@@ -32,49 +35,37 @@ export async function seedUsers(db: any) {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      {
-        _id: userId2,
-        email: "dev@acme.com",
-        password: hashedPassword,
-        firstName: "Jane",
-        lastName: "Smith",
-        provider: "local",
+      // Additional users with various roles and organizations
+      ...userIds.map((id, index) => ({
+        _id: id,
+        email: `user${index + 1}@test.com`,
+        password: defaultPassword,
+        firstName: `User`,
+        lastName: `${index + 1}`,
+        provider: index % 3 === 0 ? "google" : "local",
         organizations: [
           {
-            organization: orgId,
-            role: "member",
-            joinedAt: new Date(),
+            organization: index < 10 ? orgId : orgIds[index % orgIds.length],
+            role:
+              index % 3 === 0 ? "admin" : index % 3 === 1 ? "member" : "viewer",
+            joinedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
           },
         ],
-        currentOrganization: orgId,
-        createdAt: new Date(),
+        currentOrganization: index < 10 ? orgId : orgIds[index % orgIds.length],
+        createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
         updatedAt: new Date(),
-      },
-      // Test user with known credentials
-      {
-        _id: testUserId,
-        email: "user@test.com",
-        password: testUserPassword,
-        firstName: "Test",
-        lastName: "User",
-        provider: "local",
-        organizations: [
-          {
-            organization: orgId,
-            role: "member",
-            joinedAt: new Date(),
-          },
-        ],
-        currentOrganization: orgId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
+      })),
+    ];
 
-    console.log("Users seeded successfully!");
-    console.log("Test user created with:");
-    console.log("Email: user@test.com");
-    console.log("Password: 1234");
+    await db.collection("users").insertMany(users);
+    console.log(
+      "Created users:",
+      users.map((user) => ({
+        id: user._id.toString(),
+        email: user.email,
+        organization: user.currentOrganization.toString(),
+      }))
+    );
   } catch (error) {
     console.error("Error seeding users:", error);
     throw error;

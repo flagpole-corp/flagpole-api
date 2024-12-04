@@ -1,55 +1,37 @@
-import { projectId1, projectId2 } from "./project.seed";
+import { Db, ObjectId } from "mongodb";
+import { projectIds } from "./project.seed";
 
-export async function seedFeatureFlags(db: any) {
+export async function seedFeatureFlags(db: Db) {
   try {
     await db.collection("feature_flags").deleteMany({});
 
-    await db.collection("feature_flags").insertMany([
-      {
-        name: "new-user-onboarding",
-        description: "Enable new user onboarding flow",
-        isEnabled: false,
-        project: projectId1,
-        conditions: {},
-        environments: ["development", "staging", "production"],
-        createdAt: new Date(),
+    const flags = projectIds.flatMap((projectId, pIndex) =>
+      Array.from({ length: 5 }, (_, index) => ({
+        _id: new ObjectId(),
+        name: `flag-${pIndex + 1}-${index + 1}`,
+        description: `Feature flag ${index + 1} for project ${pIndex + 1}`,
+        isEnabled: index % 2 === 0,
+        project: projectId,
+        conditions:
+          index === 0
+            ? {
+                userGroups: ["beta-testers"],
+                percentage: 50,
+              }
+            : {},
+        environments:
+          index < 2
+            ? ["development", "staging", "production"]
+            : index < 4
+            ? ["development", "staging"]
+            : ["development"],
+        createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
         updatedAt: new Date(),
-      },
-      {
-        name: "dark-mode",
-        description: "Enable dark mode in mobile app",
-        isEnabled: true,
-        project: projectId1,
-        conditions: {},
-        environments: ["development", "staging"],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        name: "new-dashboard",
-        description: "Enable new dashboard design",
-        isEnabled: false,
-        project: projectId2,
-        conditions: {},
-        environments: ["development"],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        name: "beta-features",
-        description: "Enable beta features for selected users",
-        isEnabled: true,
-        project: projectId2,
-        conditions: {
-          userGroups: ["beta-testers"],
-        },
-        environments: ["production"],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
+      }))
+    );
 
-    console.log("Feature flags seeded successfully!");
+    await db.collection("feature_flags").insertMany(flags);
+    console.log(`Created ${flags.length} feature flags`);
   } catch (error) {
     console.error("Error seeding feature flags:", error);
     throw error;

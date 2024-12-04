@@ -5,16 +5,42 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { RequestWithUser } from "../types/request";
+import { Project } from "src/projects/schemas/project.schema";
+import { Model, Types } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
 
 @Injectable()
 export class ProjectContextGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<RequestWithUser>();
+  constructor(
+    @InjectModel(Project.name) private projectModel: Model<Project>
+  ) {}
 
-    if (!request.projectId) {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const projectId = request.headers["x-project-id"];
+    const organizationId = request.headers["x-organization-id"];
+
+    console.log("ProjectContextGuard Check:", {
+      projectId,
+      organizationId,
+      user: request.user,
+    });
+
+    if (!projectId) {
       throw new ForbiddenException(
         "No project context found. Please select a project first."
       );
+    }
+
+    const project = await this.projectModel.findOne({
+      _id: new Types.ObjectId(projectId),
+      organization: new Types.ObjectId(organizationId),
+    });
+
+    console.log("Found project:", project);
+
+    if (!project) {
+      throw new ForbiddenException("Invalid project context");
     }
 
     return true;

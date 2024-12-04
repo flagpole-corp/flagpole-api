@@ -1,60 +1,44 @@
-import { MongoClient, ObjectId } from "mongodb";
-import { orgId } from "./organization.seed";
-import { userId1, userId2 } from "./user.seed";
+import { Db, ObjectId } from "mongodb";
+import { orgId, orgIds } from "./organization.seed";
+import { testUserId, userIds } from "./user.seed";
 
-export const projectId1 = new ObjectId();
-export const projectId2 = new ObjectId();
+export const projectIds = Array.from({ length: 10 }, () => new ObjectId());
 
-export async function seedProjects(db: any) {
+export async function seedProjects(db: Db) {
   try {
     await db.collection("projects").deleteMany({});
 
-    await db.collection("projects").insertMany([
-      {
-        _id: projectId1,
-        name: "Mobile App",
-        description: "Mobile application feature flags",
-        organization: orgId,
-        status: "active",
-        members: [
-          {
-            user: userId1,
-            role: "owner",
-            addedAt: new Date(),
-          },
-          {
-            user: userId2,
-            role: "member",
-            addedAt: new Date(),
-          },
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        _id: projectId2,
-        name: "Web Platform",
-        description: "Web platform feature flags",
-        organization: orgId,
-        status: "active",
-        members: [
-          {
-            user: userId1,
-            role: "owner",
-            addedAt: new Date(),
-          },
-          {
-            user: userId2,
-            role: "member",
-            addedAt: new Date(),
-          },
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ]);
+    const projects = projectIds.map((id, index) => ({
+      _id: id,
+      name: `Project ${index + 1}`,
+      description: `Description for Project ${index + 1}`,
+      organization: index < 5 ? orgId : orgIds[index % orgIds.length],
+      status: "active",
+      members: [
+        {
+          user: testUserId,
+          role: "owner",
+          addedAt: new Date(),
+        },
+        ...userIds.slice(0, 3).map((userId) => ({
+          user: userId,
+          role: "member",
+          addedAt: new Date(),
+        })),
+      ],
+      createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(),
+    }));
 
-    console.log("Projects seeded successfully!");
+    await db.collection("projects").insertMany(projects);
+    console.log(
+      "Created projects:",
+      projects.map((project) => ({
+        id: project._id.toString(),
+        name: project.name,
+        organization: project.organization.toString(),
+      }))
+    );
   } catch (error) {
     console.error("Error seeding projects:", error);
     throw error;
