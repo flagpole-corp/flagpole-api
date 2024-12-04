@@ -43,19 +43,36 @@ export class FeatureFlagService {
     projectId: string,
     organizationId: string
   ): Promise<FeatureFlag[]> {
+    console.log("FeatureFlagService.findAll called with:", {
+      projectId,
+      organizationId,
+    });
+
     // Verify project belongs to organization
     const project = await this.projectModel.findOne({
       _id: new Types.ObjectId(projectId),
       organization: new Types.ObjectId(organizationId),
     });
 
+    console.log("Project found:", project);
+
     if (!project) {
       throw new NotFoundException("Project not found");
     }
 
-    return this.featureFlagModel.find({
+    console.log("Searching for flags with query:", {
       project: new Types.ObjectId(projectId),
     });
+
+    const totalFlags = await this.featureFlagModel.countDocuments();
+    console.log("Total flags in collection:", totalFlags);
+
+    const flags = await this.featureFlagModel.find({
+      project: new Types.ObjectId(projectId),
+    });
+
+    console.log("Flags found:", flags);
+    return flags;
   }
 
   async findOne(id: string, projectId: string): Promise<FeatureFlag> {

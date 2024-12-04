@@ -20,9 +20,8 @@ export class ProjectContextGuard implements CanActivate {
     const projectId = request.headers["x-project-id"];
     const organizationId = request.headers["x-organization-id"];
 
-    console.log("ProjectContextGuard Check:", {
-      projectId,
-      organizationId,
+    console.log("ProjectContextGuard checking request:", {
+      headers: request.headers,
       user: request.user,
     });
 
@@ -41,6 +40,13 @@ export class ProjectContextGuard implements CanActivate {
 
     if (!project) {
       throw new ForbiddenException("Invalid project context");
+    }
+
+    if (!request.headers["x-project-id"]) {
+      console.log("ProjectContextGuard: No project ID found in headers");
+      throw new ForbiddenException(
+        "No project context found. Please select a project first."
+      );
     }
 
     return true;

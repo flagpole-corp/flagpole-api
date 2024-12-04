@@ -79,16 +79,32 @@ export class FeatureFlagController {
     @Headers("x-project-id") projectId: string,
     @Req() req: RequestWithUser
   ): Promise<FeatureFlag[]> {
+    console.log("Request details:", {
+      projectId,
+      organizationId: req.user.currentOrganization,
+      availableProjectIds: [
+        "674fab2457b33ba902d8f5d6",
+        "674fab2457b33ba902d8f5d7",
+        "674fab2457b33ba902d8f5d8",
+        "674fab2457b33ba902d8f5d9",
+        "674fab2457b33ba902d8f5da",
+      ],
+    });
+
     if (!projectId) {
       throw new UnauthorizedException("Project ID is required");
     }
     if (!req.user.currentOrganization) {
       throw new UnauthorizedException("Organization context is required");
     }
-    return this.featureFlagService.findAll(
+
+    const flags = await this.featureFlagService.findAll(
       projectId,
       req.user.currentOrganization.toString()
     );
+
+    console.log("FeatureFlagController.findAll returning:", flags);
+    return flags;
   }
 
   @Patch(":id/toggle")
