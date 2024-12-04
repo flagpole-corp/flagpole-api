@@ -1,5 +1,6 @@
 import { Db, ObjectId } from "mongodb";
 import { projectIds } from "./project.seed";
+import { faker } from "@faker-js/faker";
 
 export async function seedFeatureFlags(db: Db) {
   try {
@@ -8,7 +9,6 @@ export async function seedFeatureFlags(db: Db) {
     // First, get all projects with their organization IDs
     const projects = await db.collection("projects").find({}).toArray();
 
-    // Create a map of project ID to organization ID
     const projectOrgMap = new Map(
       projects.map((project) => [project._id.toString(), project.organization])
     );
@@ -18,47 +18,62 @@ export async function seedFeatureFlags(db: Db) {
       projectIds.map((id) => id.toString())
     );
 
-    const flags = projectIds.flatMap(
-      (projectId, pIndex) =>
-        Array.from({ length: 5 }, (_, index) => {
-          const orgId = projectOrgMap.get(projectId.toString());
-          if (!orgId) {
-            console.warn(
-              `No organization found for project ${projectId.toString()}`
-            );
-            return null;
-          }
+    const featureTypes = [
+      "authentication",
+      "payment",
+      "ui",
+      "api",
+      "notification",
+      "analytics",
+    ];
 
-          return {
-            _id: new ObjectId(),
-            name: `flag-${pIndex + 1}-${index + 1}`,
-            description: `Feature flag ${index + 1} for project ${pIndex + 1}`,
-            isEnabled: index % 2 === 0,
-            project: projectId,
-            organization: orgId, // Add the organization ID
-            conditions:
-              index === 0
-                ? {
-                    userGroups: ["beta-testers"],
-                    percentage: 50,
-                  }
-                : {},
-            environments:
-              index < 2
-                ? ["development", "staging", "production"]
-                : index < 4
-                ? ["development", "staging"]
-                : ["development"],
-            createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
-            updatedAt: new Date(),
-          };
-        }).filter((flag) => flag !== null) // Remove any null values
+    const flags = projectIds.flatMap((projectId, pIndex) =>
+      Array.from({ length: 5 }, (_, index) => {
+        const orgId = projectOrgMap.get(projectId.toString());
+        if (!orgId) {
+          console.warn(
+            `No organization found for project ${projectId.toString()}`
+          );
+          return null;
+        }
+
+        const featureType = faker.helpers.arrayElement(featureTypes);
+        const feature = faker.word
+          .words({ count: { min: 1, max: 3 } })
+          .toLowerCase()
+          .replace(/\s+/g, "-");
+        const flagName = `${featureType}-${feature}`;
+
+        return {
+          _id: new ObjectId(),
+          name: flagName,
+          description: faker.lorem.sentence(),
+          isEnabled: faker.datatype.boolean(),
+          project: projectId,
+          organization: orgId,
+          conditions:
+            index === 0
+              ? {
+                  userGroups: faker.helpers.arrayElements(
+                    ["beta-testers", "premium-users", "internal", "developers"],
+                    { min: 1, max: 3 }
+                  ),
+                  percentage: faker.number.int({ min: 10, max: 100 }),
+                }
+              : {},
+          environments: faker.helpers.arrayElements(
+            ["development", "staging", "production"],
+            { min: 1, max: 3 }
+          ),
+          createdAt: faker.date.past(),
+          updatedAt: faker.date.recent(),
+        };
+      }).filter((flag) => flag !== null)
     );
 
     if (flags.length > 0) {
       await db.collection("feature_flags").insertMany(flags);
 
-      // Add verification log
       console.log("Feature flags created:");
       const createdFlags = await db
         .collection("feature_flags")
@@ -66,16 +81,6 @@ export async function seedFeatureFlags(db: Db) {
         .toArray();
       console.log("Sample of created flags:", createdFlags.slice(0, 2));
       console.log(`Total flags created: ${createdFlags.length}`);
-
-      // Add verification query
-      const flagsForFirstProject = await db
-        .collection("feature_flags")
-        .find({ project: projectIds[0] })
-        .toArray();
-      console.log(
-        `Flags for first project (${projectIds[0].toString()}):`,
-        flagsForFirstProject.length
-      );
     } else {
       console.error(
         "No flags were created - check project/organization mapping"

@@ -1,8 +1,9 @@
 import { MongoClient, ObjectId } from "mongodb";
 import { Db } from "mongodb";
+import { faker } from "@faker-js/faker";
 
-export const orgId = new ObjectId(); // Main test org
-export const orgIds = Array.from({ length: 9 }, () => new ObjectId()); // 9 more orgs
+export const orgId = new ObjectId();
+export const orgIds = Array.from({ length: 9 }, () => new ObjectId());
 
 export async function seedOrganizations(db: Db) {
   try {
@@ -22,35 +23,56 @@ export async function seedOrganizations(db: Db) {
         subscription: {
           status: "active",
           plan: "pro",
-          startDate: new Date(),
+          startDate: faker.date.past(),
           maxProjects: 10,
           maxMembers: 20,
         },
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: faker.date.past(),
+        updatedAt: faker.date.recent(),
       },
 
-      ...orgIds.map((id, index) => ({
-        _id: id,
-        name: `Test Organization ${index + 1}`,
-        slug: `test-org-${index + 1}`,
-        subscriptionStatus:
-          index < 3 ? "active" : index < 6 ? "trial" : "inactive",
-        settings: {
-          defaultEnvironments: ["development", "production"],
-          allowedDomains: [`org${index + 1}.com`],
-          notificationEmails: [`admin@org${index + 1}.com`],
-        },
-        subscription: {
-          status: index < 3 ? "active" : index < 6 ? "trial" : "inactive",
-          plan: index < 3 ? "pro" : index < 6 ? "basic" : "free",
-          startDate: new Date(Date.now() - index * 30 * 24 * 60 * 60 * 1000), // Different start dates
-          maxProjects: index < 3 ? 10 : 5,
-          maxMembers: index < 3 ? 20 : 10,
-        },
-        createdAt: new Date(Date.now() - index * 30 * 24 * 60 * 60 * 1000),
-        updatedAt: new Date(),
-      })),
+      ...orgIds.map((id, index) => {
+        const companyName = faker.company.name();
+        const slug = companyName.toLowerCase().replace(/[^a-z0-9]/g, "-");
+        const domain = `${slug}.com`;
+
+        return {
+          _id: id,
+          name: companyName,
+          slug,
+          subscriptionStatus: faker.helpers.arrayElement([
+            "active",
+            "trial",
+            "inactive",
+          ]),
+          settings: {
+            defaultEnvironments: faker.helpers.arrayElements(
+              ["development", "staging", "production", "qa", "sandbox"],
+              { min: 2, max: 5 }
+            ),
+            allowedDomains: [domain],
+            notificationEmails: [
+              `admin@${domain}`,
+              `dev@${domain}`,
+              `support@${domain}`,
+            ].slice(0, faker.number.int({ min: 1, max: 3 })),
+          },
+          subscription: {
+            status: faker.helpers.arrayElement(["active", "trial", "inactive"]),
+            plan: faker.helpers.arrayElement([
+              "free",
+              "basic",
+              "pro",
+              "enterprise",
+            ]),
+            startDate: faker.date.past(),
+            maxProjects: faker.helpers.arrayElement([5, 10, 20, 50]),
+            maxMembers: faker.helpers.arrayElement([10, 20, 50, 100]),
+          },
+          createdAt: faker.date.past(),
+          updatedAt: faker.date.recent(),
+        };
+      }),
     ];
 
     await db.collection("organizations").insertMany(organizations);
