@@ -8,7 +8,23 @@ async function bootstrap() {
 
   app.setGlobalPrefix("api");
   app.enableCors({
-    origin: ["http://localhost:5173", "http://localhost:5174"], // frontend URL
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = {
+        dashboards: [process.env.DASHBOARD_URL || "http://localhost:5173"],
+        customers: process.env.ALLOWED_CUSTOMER_DOMAINS
+          ? JSON.parse(process.env.ALLOWED_CUSTOMER_DOMAINS)
+          : {},
+      };
+
+      if (allowedOrigins.dashboards.indexOf(origin) !== -1) {
+        return callback(null, true);
+      }
+
+      console.warn(`Unauthorized origin attempt: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    },
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true, // Important for cookies/auth
     allowedHeaders: [
@@ -16,6 +32,7 @@ async function bootstrap() {
       "Authorization",
       "x-organization-id",
       "x-project-id",
+      "x-api-key",
     ],
   });
   app.useGlobalPipes(new ValidationPipe());

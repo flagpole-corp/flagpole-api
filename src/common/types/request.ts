@@ -24,3 +24,8 @@ export interface RequestWithUser extends Request {
   organizationId?: Types.ObjectId;
   projectId?: Types.ObjectId;
 }
+
+export interface RequestWithApiKey extends Request {
+  projectId: Types.ObjectId;
+  organizationId: Types.ObjectId;
+}
