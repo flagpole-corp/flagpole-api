@@ -8,7 +8,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix("api");
   app.enableCors({
-    origin: ["http://localhost:5173"], // frontend URL
+    origin: ["http://localhost:5173", "http://localhost:5174"], // frontend URL
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true, // Important for cookies/auth
     allowedHeaders: [

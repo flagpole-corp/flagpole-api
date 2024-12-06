@@ -2,7 +2,7 @@ import { MongoClient, ObjectId } from "mongodb";
 import { Db } from "mongodb";
 import { faker } from "@faker-js/faker";
 
-export const orgId = new ObjectId();
+export const orgId = new ObjectId("6750ab92edcaf782ea116863");
 export const orgIds = Array.from({ length: 9 }, () => new ObjectId());
 
 export async function seedOrganizations(db: Db) {

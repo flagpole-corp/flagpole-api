@@ -3,7 +3,10 @@ import { orgId, orgIds } from "./organization.seed";
 import { testUserId, userIds } from "./user.seed";
 import { faker } from "@faker-js/faker";
 
-export const projectIds = Array.from({ length: 10 }, () => new ObjectId());
+export const projectIds = [
+  new ObjectId("6758ab93edcaf782ea116883"),
+  ...Array.from({ length: 10 }, () => new ObjectId()),
+];
 
 export async function seedProjects(db: Db) {
   try {
