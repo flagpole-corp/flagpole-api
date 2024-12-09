@@ -30,8 +30,8 @@ export class ApiKeysService {
   async findAll(organizationId: string) {
     return this.apiKeyModel
       .find({ organization: organizationId })
-      .populate("project", "name")
-      .select("-key"); // Don't send the actual key in list
+      .populate("project", "name");
+    // .select("-key"); // Don't send the actual key in list
   }
 
   async deactivate(id: string, organizationId: string) {

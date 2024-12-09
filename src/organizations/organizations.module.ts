@@ -1,3 +1,4 @@
+// src/organizations/organizations.module.ts
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { OrganizationsService } from "./organizations.service";
@@ -13,6 +14,7 @@ import {
   FeatureFlagSchema,
 } from "src/feature-flag/schemas/feature-flag.schema";
 import { SubscriptionService } from "./services/subscription.service";
+import { SubscriptionLimitsGuard } from "../common/guards/subscription-limits.guard";
 
 @Module({
   imports: [
@@ -23,8 +25,17 @@ import { SubscriptionService } from "./services/subscription.service";
       { name: FeatureFlag.name, schema: FeatureFlagSchema },
     ]),
   ],
-  providers: [OrganizationsService],
-  controllers: [OrganizationsController, SubscriptionService],
-  exports: [OrganizationsService, SubscriptionService],
+  providers: [
+    OrganizationsService,
+    SubscriptionService,
+    SubscriptionLimitsGuard,
+  ],
+  controllers: [OrganizationsController],
+  exports: [
+    OrganizationsService,
+    SubscriptionService,
+    SubscriptionLimitsGuard,
+    MongooseModule,
+  ],
 })
 export class OrganizationsModule {}

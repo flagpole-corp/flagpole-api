@@ -14,7 +14,6 @@ import { OrganizationAuthGuard } from "src/common/guards/organization-auth.guard
 import { ProjectsService } from "./projects.service";
 import { RequestWithUser } from "src/common/types/request";
 import { CreateProjectDto } from "./dto";
-import { ApiOperation } from "@nestjs/swagger";
 import { SubscriptionLimitsGuard } from "src/common/guards/subscription-limits.guard";
 
 @Controller("projects")

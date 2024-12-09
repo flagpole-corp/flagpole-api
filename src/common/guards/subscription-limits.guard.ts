@@ -10,7 +10,10 @@ import { Organization } from "../../organizations/schemas/organization.schema";
 import { Project } from "../../projects/schemas/project.schema";
 import { FeatureFlag } from "../../feature-flag/schemas/feature-flag.schema";
 import { User } from "../../users/schemas/user.schema";
-import { PLAN_LIMITS, SubscriptionStatus } from "../enums/subscription.enum";
+import {
+  PLAN_LIMITS,
+  SubscriptionStatus,
+} from "../../common/enums/subscription.enum";
 
 @Injectable()
 export class SubscriptionLimitsGuard implements CanActivate {
