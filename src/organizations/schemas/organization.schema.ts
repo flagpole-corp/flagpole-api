@@ -1,7 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Schema as MongooseSchema } from "mongoose";
 import { User } from "../../users/schemas/user.schema";
-import { SubscriptionStatus, OrganizationRole } from "../../common/enums";
+import { OrganizationRole } from "../../common/enums";
+import {
+  SubscriptionStatus,
+  SubscriptionPlan,
+} from "src/common/enums/subscription.enum";
 
 @Schema({ timestamps: true })
 class OrganizationMember {
@@ -75,6 +79,26 @@ export class Organization extends Document {
 
   @Prop({ type: Subscription, required: true })
   subscription: Subscription;
+
+  @Prop({
+    type: String,
+    enum: SubscriptionPlan,
+    default: SubscriptionPlan.TRIAL,
+  })
+  plan: SubscriptionPlan;
+
+  @Prop({
+    type: String,
+    enum: SubscriptionStatus,
+    default: SubscriptionStatus.TRIAL,
+  })
+  subscriptionStatus: SubscriptionStatus;
+
+  @Prop()
+  trialEndsAt?: Date;
+
+  @Prop()
+  subscriptionEndsAt?: Date;
 
   // Methods
   hasUser(userId: string): boolean {
