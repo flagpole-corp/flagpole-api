@@ -8,6 +8,7 @@ import { UsersModule } from "./users/users.module";
 import { OrganizationContextMiddleware } from "./common/middleware/organization-context.middleware";
 import { MiddlewareModule } from "./common/middleware/middleware.module";
 import { ProjectsModule } from "./projects/projects.module";
+import { ApiKeysModule } from "./api-keys/api-keys.module";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ProjectsModule } from "./projects/projects.module";
     MiddlewareModule,
     AuthModule,
     OrganizationsModule,
+    ApiKeysModule,
     FeatureFlagModule,
     ProjectsModule,
   ],

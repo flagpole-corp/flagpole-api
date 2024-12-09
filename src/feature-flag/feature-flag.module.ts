@@ -9,6 +9,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { WsJwtGuard } from "src/auth/guards/ws-jwt.guard";
 import { AuthModule } from "src/auth/auth.module";
+import { ApiKeysModule } from "src/api-keys/api-keys.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthModule } from "src/auth/auth.module";
       { name: Project.name, schema: ProjectSchema },
     ]),
     AuthModule,
+    ApiKeysModule,
   ],
   controllers: [FeatureFlagController],
   providers: [FeatureFlagService, FeatureFlagGateway, WsJwtGuard],
