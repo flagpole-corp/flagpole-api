@@ -12,6 +12,7 @@ import { FeatureFlag } from "../../feature-flag/schemas/feature-flag.schema";
 import { User } from "../../users/schemas/user.schema";
 import {
   PLAN_LIMITS,
+  SubscriptionPlan,
   SubscriptionStatus,
 } from "../../common/enums/subscription.enum";
 
@@ -27,7 +28,7 @@ export class SubscriptionLimitsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const organizationId = request.organizationId;
+    const organizationId = request.headers["x-organization-id"];
 
     console.log(
       "SubscriptionLimitsGuard - checking organization:",
@@ -39,31 +40,41 @@ export class SubscriptionLimitsGuard implements CanActivate {
     console.log("Found organization:", {
       id: organization?._id,
       plan: organization?.subscription?.plan,
-      status: organization?.subscriptionStatus,
+      status: organization?.subscription?.status,
     });
 
     if (!organization) {
       throw new ForbiddenException("Organization not found");
     }
 
+    const { plan, status, trialEndsAt } = organization.subscription;
+
+    if (!Object.values(SubscriptionPlan).includes(plan as SubscriptionPlan)) {
+      throw new ForbiddenException(`Invalid subscription plan: ${plan}`);
+    }
+
     // Check subscription status
-    if (organization.subscriptionStatus === SubscriptionStatus.EXPIRED) {
+    if (status === SubscriptionStatus.EXPIRED) {
       throw new ForbiddenException("Subscription has expired");
     }
 
     // Check trial expiration
     if (
-      organization.subscriptionStatus === SubscriptionStatus.TRIAL &&
-      organization.trialEndsAt &&
-      organization.trialEndsAt < new Date()
+      status === SubscriptionStatus.TRIAL &&
+      trialEndsAt &&
+      trialEndsAt < new Date()
     ) {
       await this.organizationModel.findByIdAndUpdate(organizationId, {
-        subscriptionStatus: SubscriptionStatus.EXPIRED,
+        "subscription.status": SubscriptionStatus.EXPIRED,
       });
       throw new ForbiddenException("Trial period has expired");
     }
 
-    const planLimits = PLAN_LIMITS[organization.plan];
+    const planLimits = PLAN_LIMITS[plan as SubscriptionPlan];
+
+    if (!planLimits) {
+      throw new ForbiddenException("Invalid subscription plan");
+    }
 
     // Check limits based on the request path and method
     const path = request.route.path;

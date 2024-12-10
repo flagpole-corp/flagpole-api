@@ -18,11 +18,18 @@ export class ProjectsService {
   ) {}
 
   async findAll(organizationId: string) {
+    console.log(
+      "ProjectsService - findAll starting with organizationId:",
+      organizationId
+    );
+
     // Always filter by organization
-    return this.projectModel.find({
+    const projects = await this.projectModel.find({
       organization: new Types.ObjectId(organizationId),
       status: { $ne: ProjectStatus.DELETED },
     });
+    console.log("ProjectsService - found projects:", projects);
+    return projects;
   }
 
   async findOne(projectId: string, organizationId: string) {

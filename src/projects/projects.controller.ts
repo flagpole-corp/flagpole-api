@@ -23,15 +23,18 @@ export class ProjectsController {
 
   @Get()
   async findAll(@Request() req: RequestWithUser) {
-    console.log("Headers:", req.headers); // Debug log
-    console.log("User:", req.user); // Debug log
+    console.log("Headers:", req.headers);
+    console.log("User:", req.user);
     console.log(
       "Organization ID from header:",
       req.headers["x-organization-id"]
-    ); // Debug log
-    return this.projectsService.findAll(
+    );
+    const projects = this.projectsService.findAll(
       req.headers["x-organization-id"] as string
     );
+
+    console.log("Found projects:", projects);
+    return projects;
   }
 
   @Post()
