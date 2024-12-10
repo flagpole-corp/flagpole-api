@@ -22,12 +22,12 @@ export class FeatureFlag extends Document {
   project: Types.ObjectId;
 
   @Prop({
-    type: MongooseSchema.Types.ObjectId,
+    type: Types.ObjectId,
     ref: "Organization",
     required: true,
     index: true,
   })
-  organization: Organization;
+  organization: Types.ObjectId;
 
   @Prop({ type: Object, default: {} })
   conditions: Record<string, any>;

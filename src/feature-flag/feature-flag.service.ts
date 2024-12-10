@@ -29,14 +29,15 @@ export class FeatureFlagService {
       throw new NotFoundException("Project not found");
     }
 
-    const featureFlag = new this.featureFlagModel({
-      ...createFeatureFlagDto,
-      project: new Types.ObjectId(projectId),
-    });
+    const [featureFlag] = await this.featureFlagModel.create([
+      {
+        ...createFeatureFlagDto,
+        project: new Types.ObjectId(projectId),
+      },
+    ]);
 
-    const savedFlag = await featureFlag.save();
-    await this.featureFlagGateway.emitFlagUpdate(savedFlag);
-    return savedFlag;
+    await this.featureFlagGateway.emitFlagUpdate(featureFlag);
+    return featureFlag;
   }
 
   async findAll(
