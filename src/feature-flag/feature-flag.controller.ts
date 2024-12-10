@@ -64,10 +64,10 @@ export class FeatureFlagController {
     );
   }
 
-  @Get("admin")
+  @Get()
   @UseGuards(JwtAuthGuard, ProjectContextGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Get all feature flags for admin dashboard" })
+  @ApiOperation({ summary: "Get all feature flags for the current project" })
   @ApiHeader({
     name: "x-project-id",
     description: "ID of the current project",
@@ -78,7 +78,7 @@ export class FeatureFlagController {
     description: "Returns all feature flags",
     type: [FeatureFlag],
   })
-  async findAllAdmin(
+  async findAll(
     @Headers("x-project-id") projectId: string,
     @Req() req: RequestWithUser
   ): Promise<FeatureFlag[]> {
@@ -89,10 +89,13 @@ export class FeatureFlagController {
       throw new UnauthorizedException("Organization context is required");
     }
 
-    return this.featureFlagService.findAll(
+    const flags = this.featureFlagService.findAll(
       projectId,
       req.user.currentOrganization.toString()
     );
+
+    console.log("FeatureFlagController.findAll returning:", flags);
+    return flags;
   }
 
   @Patch(":id/toggle")
