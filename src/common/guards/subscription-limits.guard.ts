@@ -29,7 +29,18 @@ export class SubscriptionLimitsGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const organizationId = request.organizationId;
 
+    console.log(
+      "SubscriptionLimitsGuard - checking organization:",
+      organizationId
+    );
+
     const organization = await this.organizationModel.findById(organizationId);
+
+    console.log("Found organization:", {
+      id: organization?._id,
+      plan: organization?.subscription?.plan,
+      status: organization?.subscriptionStatus,
+    });
 
     if (!organization) {
       throw new ForbiddenException("Organization not found");

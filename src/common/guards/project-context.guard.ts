@@ -20,6 +20,11 @@ export class ProjectContextGuard implements CanActivate {
     const projectId = request.headers["x-project-id"];
     const organizationId = request.headers["x-organization-id"];
 
+    console.log("ProjectContextGuard - Initial check:", {
+      projectId: request.headers["x-project-id"],
+      organizationId: request.headers["x-organization-id"],
+    });
+
     console.log("ProjectContextGuard checking request:", {
       headers: request.headers,
       user: request.user,
