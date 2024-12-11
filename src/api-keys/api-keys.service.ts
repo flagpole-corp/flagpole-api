@@ -27,9 +27,9 @@ export class ApiKeysService {
     return apiKey.save();
   }
 
-  async findAll(organizationId: string) {
+  async findAll(organizationId: string, projectId: string) {
     return this.apiKeyModel
-      .find({ organization: organizationId })
+      .find({ organization: organizationId, project: projectId })
       .populate("project", "name");
     // .select("-key"); // Don't send the actual key in list
   }

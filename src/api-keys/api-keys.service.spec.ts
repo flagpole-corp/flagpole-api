@@ -69,7 +69,10 @@ describe("ApiKeysService", () => {
         populate: populateSpy,
       } as any);
 
-      const result = await service.findAll(mockOrgId.toString());
+      const result = await service.findAll(
+        mockOrgId.toString(),
+        mockProjectId.toString()
+      );
       expect(result).toEqual([mockApiKey]);
     });
   });

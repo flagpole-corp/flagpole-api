@@ -79,7 +79,10 @@ describe("ApiKeysController", () => {
 
   describe("findAll", () => {
     it("should return all API keys", async () => {
-      const result = await controller.findAll(mockOrgId.toString());
+      const result = await controller.findAll(
+        mockOrgId.toString(),
+        mockProjectId.toString()
+      );
 
       expect(result).toEqual([mockApiKey]);
       expect(service.findAll).toHaveBeenCalledWith(mockOrgId.toString());

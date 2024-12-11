@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   UseGuards,
+  Headers,
 } from "@nestjs/common";
 import { ApiKeysService } from "./api-keys.service";
 import { CreateApiKeyDto } from "./dto/create-api-key.dto";
@@ -27,8 +28,11 @@ export class ApiKeysController {
   }
 
   @Get()
-  async findAll(@CurrentOrganization() organizationId: string) {
-    return this.apiKeysService.findAll(organizationId);
+  async findAll(
+    @CurrentOrganization() organizationId: string,
+    @Headers("x-project-id") projectId: string
+  ) {
+    return this.apiKeysService.findAll(organizationId, projectId);
   }
 
   @Patch(":id/deactivate")
