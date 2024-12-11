@@ -85,7 +85,10 @@ describe("ApiKeysController", () => {
       );
 
       expect(result).toEqual([mockApiKey]);
-      expect(service.findAll).toHaveBeenCalledWith(mockOrgId.toString());
+      expect(service.findAll).toHaveBeenCalledWith(
+        mockOrgId.toString(),
+        mockProjectId.toString()
+      );
     });
   });
 
