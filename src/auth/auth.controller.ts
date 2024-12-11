@@ -5,6 +5,7 @@ import {
   Request,
   Get,
   HttpStatus,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { Request as ExpressRequest } from "express";
@@ -38,6 +39,9 @@ export class AuthController {
   })
   @ApiBody({ type: LoginDto })
   async login(@Request() req: RequestWithUser) {
+    if (!req.user) {
+      throw new UnauthorizedException("User not found in request");
+    }
     return this.authService.login(req.user);
   }
 
@@ -61,6 +65,9 @@ export class AuthController {
       "Returns JWT token and user information after successful Google login",
   })
   async googleAuthRedirect(@Request() req: RequestWithUser) {
+    if (!req.user) {
+      throw new UnauthorizedException("User not found in request");
+    }
     return this.authService.login(req.user);
   }
 
@@ -73,6 +80,9 @@ export class AuthController {
     description: "Returns current user information",
   })
   async getCurrentUser(@Request() req: RequestWithUser) {
+    if (!req.user) {
+      throw new UnauthorizedException("User not found in request");
+    }
     return this.authService.getCurrentUser(req.user._id);
   }
 
@@ -89,6 +99,9 @@ export class AuthController {
     description: "Error logging out",
   })
   async logout(@Request() req: RequestWithUser): Promise<void> {
+    if (!req.user) {
+      throw new UnauthorizedException("User not found in request");
+    }
     await this.authService.revokeToken(req.user.id);
   }
 }
