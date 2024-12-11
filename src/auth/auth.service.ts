@@ -80,7 +80,6 @@ export class AuthService {
       googleId: details.googleId,
       provider: "google",
       roles: ["user"],
-      // You might want to create a default organization here
     });
 
     return newUser.save();
