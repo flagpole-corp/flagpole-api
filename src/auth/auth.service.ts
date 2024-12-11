@@ -30,7 +30,6 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (isPasswordValid) {
-      // Convert to object and remove password before returning
       const userObject = user.toObject();
       delete userObject.password;
       return userObject;
@@ -125,5 +124,24 @@ export class AuthService {
         organization: org.organization.toString(),
       })),
     };
+  }
+
+  async revokeToken(userId: string): Promise<void> {
+    await this.userModel.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          loggedOut: true,
+          lastLogoutAt: new Date(),
+          refreshToken: null,
+        },
+        $push: {
+          securityEvents: {
+            type: "logout",
+            timestamp: new Date(),
+          },
+        },
+      }
+    );
   }
 }

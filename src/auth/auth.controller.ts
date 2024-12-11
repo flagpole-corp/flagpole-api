@@ -1,4 +1,11 @@
-import { Controller, Post, UseGuards, Request, Get } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Request,
+  Get,
+  HttpStatus,
+} from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { Request as ExpressRequest } from "express";
 import { AuthService } from "./auth.service";
@@ -67,5 +74,21 @@ export class AuthController {
   })
   async getCurrentUser(@Request() req: RequestWithUser) {
     return this.authService.getCurrentUser(req.user._id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("logout")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Log user out" })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: "User logged out successfully",
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: "Error logging out",
+  })
+  async logout(@Request() req: RequestWithUser): Promise<void> {
+    await this.authService.revokeToken(req.user.id);
   }
 }
