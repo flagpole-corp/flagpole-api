@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Schema as MongooseSchema, Types } from "mongoose";
-import { Organization } from "../../organizations/schemas/organization.schema";
 
 @Schema({ timestamps: true, collection: "feature_flags" })
 export class FeatureFlag extends Document {

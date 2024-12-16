@@ -19,7 +19,6 @@ export class FeatureFlagService {
     projectId: string,
     organizationId: string
   ): Promise<FeatureFlag> {
-    // Verify project belongs to organization
     const project = await this.projectModel.findOne({
       _id: new Types.ObjectId(projectId),
       organization: new Types.ObjectId(organizationId),
@@ -33,6 +32,7 @@ export class FeatureFlagService {
       {
         ...createFeatureFlagDto,
         project: new Types.ObjectId(projectId),
+        organization: new Types.ObjectId(organizationId),
       },
     ]);
 

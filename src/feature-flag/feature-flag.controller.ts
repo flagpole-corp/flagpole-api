@@ -48,19 +48,23 @@ export class FeatureFlagController {
   })
   async create(
     @Headers("x-project-id") projectId: string,
+    @Headers("x-organization-id") orgId: string,
     @Body() createFeatureFlagDto: CreateFeatureFlagDto,
     @Req() req: RequestWithUser
   ): Promise<FeatureFlag> {
     if (!projectId) {
       throw new UnauthorizedException("Project ID is required");
     }
-    if (!req.user.currentOrganization) {
+    const organizationId = orgId || req.user.currentOrganization?.toString();
+
+    if (!organizationId) {
       throw new UnauthorizedException("Organization context is required");
     }
+
     return this.featureFlagService.create(
       createFeatureFlagDto,
       projectId,
-      req.user.currentOrganization.toString()
+      organizationId
     );
   }
 
