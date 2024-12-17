@@ -49,6 +49,7 @@ export async function seedFeatureFlags(db: Db) {
           name: flagName,
           description: faker.lorem.sentence(),
           isEnabled: faker.datatype.boolean(),
+          isArchived: faker.datatype.boolean(),
           project: projectId,
           organization: orgId,
           conditions:

@@ -49,7 +49,6 @@ export class FeatureFlagService {
       organizationId,
     });
 
-    // Verify project belongs to organization
     const project = await this.projectModel.findOne({
       _id: new Types.ObjectId(projectId),
       organization: new Types.ObjectId(organizationId),
@@ -70,6 +69,7 @@ export class FeatureFlagService {
 
     const flags = await this.featureFlagModel.find({
       project: new Types.ObjectId(projectId),
+      $or: [{ isArchived: { $ne: true } }, { isArchived: { $exists: false } }],
     });
 
     console.log("Flags found:", flags);
@@ -80,6 +80,7 @@ export class FeatureFlagService {
     const flag = await this.featureFlagModel.findOne({
       _id: new Types.ObjectId(id),
       project: new Types.ObjectId(projectId),
+      $or: [{ isArchived: { $ne: true } }, { isArchived: { $exists: false } }],
     });
 
     if (!flag) {
@@ -93,7 +94,6 @@ export class FeatureFlagService {
     projectId: string,
     organizationId: string
   ): Promise<FeatureFlag> {
-    // Verify project belongs to organization
     const project = await this.projectModel.findOne({
       _id: new Types.ObjectId(projectId),
       organization: new Types.ObjectId(organizationId),
@@ -103,7 +103,16 @@ export class FeatureFlagService {
       throw new NotFoundException("Project not found");
     }
 
-    const flag = await this.findOne(id, projectId);
+    const flag = await this.featureFlagModel.findOne({
+      _id: new Types.ObjectId(id),
+      project: new Types.ObjectId(projectId),
+      isArchived: { $ne: true },
+    });
+
+    if (!flag) {
+      throw new NotFoundException(`Feature flag with ID ${id} not found`);
+    }
+
     flag.isEnabled = !flag.isEnabled;
     const updatedFlag = await flag.save();
     await this.featureFlagGateway.emitFlagUpdate(updatedFlag);
@@ -127,13 +136,27 @@ export class FeatureFlagService {
   async update(
     id: string,
     updateData: Partial<CreateFeatureFlagDto>,
-    projectId: string
+    projectId: string,
+    organizationId: string
   ): Promise<FeatureFlag> {
+    const project = await this.projectModel.findOne({
+      _id: new Types.ObjectId(projectId),
+      organization: new Types.ObjectId(organizationId),
+    });
+
+    if (!project) {
+      throw new NotFoundException("Project not found");
+    }
+
     const updatedFlag = await this.featureFlagModel
       .findOneAndUpdate(
         {
           _id: new Types.ObjectId(id),
           project: new Types.ObjectId(projectId),
+          $or: [
+            { isArchived: { $ne: true } },
+            { isArchived: { $exists: false } },
+          ],
         },
         { $set: updateData },
         { new: true }
@@ -146,5 +169,35 @@ export class FeatureFlagService {
 
     await this.featureFlagGateway.emitFlagUpdate(updatedFlag);
     return updatedFlag;
+  }
+
+  async archive(
+    id: string,
+    projectId: string,
+    organizationId: string
+  ): Promise<void> {
+    const project = await this.projectModel.findOne({
+      _id: new Types.ObjectId(projectId),
+      organization: new Types.ObjectId(organizationId),
+    });
+
+    if (!project) {
+      throw new NotFoundException("Project not found");
+    }
+
+    const result = await this.featureFlagModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(id),
+        project: new Types.ObjectId(projectId),
+        isArchived: { $ne: true },
+      },
+      { $set: { isArchived: true } }
+    );
+
+    if (!result) {
+      throw new NotFoundException(`Feature flag with ID ${id} not found`);
+    }
+
+    await this.featureFlagGateway.emitFlagDeletion(id);
   }
 }

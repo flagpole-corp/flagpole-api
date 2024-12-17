@@ -36,6 +36,9 @@ export class FeatureFlag extends Document {
 
   @Prop()
   uniqueKey?: string;
+
+  @Prop({ default: false })
+  isArchived: boolean;
 }
 
 export const FeatureFlagSchema = SchemaFactory.createForClass(FeatureFlag);

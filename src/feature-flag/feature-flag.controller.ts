@@ -10,6 +10,7 @@ import {
   HttpStatus,
   Req,
   UnauthorizedException,
+  Delete,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -133,6 +134,54 @@ export class FeatureFlagController {
       projectId,
       req.user.currentOrganization.toString()
     );
+  }
+
+  @Patch(":id")
+  @UseGuards(JwtAuthGuard, ProjectContextGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update feature flag" })
+  async update(
+    @Param("id") id: string,
+    @Headers("x-project-id") projectId: string,
+    @Headers("x-organization-id") orgId: string,
+    @Body() updateFeatureFlagDto: Partial<CreateFeatureFlagDto>,
+    @Req() req: RequestWithUser
+  ): Promise<FeatureFlag> {
+    console.log("patch :id", id);
+    if (!projectId) {
+      throw new UnauthorizedException("ProjectId is required");
+    }
+
+    if (!orgId) {
+      throw new UnauthorizedException("OrganizationId is required");
+    }
+
+    return this.featureFlagService.update(
+      id,
+      updateFeatureFlagDto,
+      projectId,
+      orgId
+    );
+  }
+
+  @Delete(":id")
+  @UseGuards(JwtAuthGuard, ProjectContextGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Delete feature flag" })
+  async delete(
+    @Param("id") id: string,
+    @Headers("x-project-id") projectId: string,
+    @Headers("x-organization-id") orgId: string,
+    @Req() req: RequestWithUser
+  ): Promise<void> {
+    if (!projectId) {
+      throw new UnauthorizedException("ProjectId is required");
+    }
+
+    if (!orgId) {
+      throw new UnauthorizedException("OrganizationId is required");
+    }
+    await this.featureFlagService.archive(id, projectId, orgId);
   }
 
   // SDK Routes (API Key Auth)
