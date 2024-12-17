@@ -5,6 +5,8 @@ import { FeatureFlagService } from "./feature-flag.service";
 import { FeatureFlag } from "./schemas/feature-flag.schema";
 import { Project } from "../projects/schemas/project.schema";
 import { FeatureFlagGateway } from "./feature-flag.gateway";
+import { NotFoundException } from "@nestjs/common";
+import { FeatureFlagController } from "./feature-flag.controller";
 
 describe("FeatureFlagService", () => {
   let service: FeatureFlagService;
@@ -54,6 +56,9 @@ describe("FeatureFlagService", () => {
             findOne: jest.fn().mockReturnValue({
               exec: jest.fn().mockResolvedValue(mockFeatureFlag),
             }),
+            findOneAndUpdate: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(mockFeatureFlag),
+            }),
             countDocuments: jest.fn().mockResolvedValue(0),
             create: jest
               .fn()
@@ -87,16 +92,21 @@ describe("FeatureFlagService", () => {
   });
 
   describe("findAll", () => {
-    it("should return all feature flags for a project", async () => {
+    it("should return all non-archived feature flags for a project", async () => {
       const projectId = mockProjectId.toString();
       const organizationId = mockOrgId.toString();
+
+      jest.spyOn(featureFlagModel, "find").mockResolvedValue(mockFlags);
 
       const result = await service.findAll(projectId, organizationId);
 
       expect(result).toEqual(mockFlags);
-      expect(projectModel.findOne).toHaveBeenCalledWith({
-        _id: new Types.ObjectId(projectId),
-        organization: new Types.ObjectId(organizationId),
+      expect(featureFlagModel.find).toHaveBeenCalledWith({
+        project: new Types.ObjectId(projectId),
+        $or: [
+          { isArchived: { $ne: true } },
+          { isArchived: { $exists: false } },
+        ],
       });
     });
   });
@@ -125,6 +135,120 @@ describe("FeatureFlagService", () => {
       expect(result).toBeDefined();
       expect(result.name).toBe(createDto.name);
       expect(gateway.emitFlagUpdate).toHaveBeenCalled();
+    });
+  });
+  describe("update", () => {
+    it("should update a feature flag", async () => {
+      const projectId = mockProjectId.toString();
+      const organizationId = mockOrgId.toString();
+      const flagId = new Types.ObjectId().toString();
+      const updateDto = {
+        description: "updated description",
+        environments: ["development", "staging"],
+      };
+
+      const updatedFlag = createMockFeatureFlag({
+        ...mockFeatureFlag,
+        ...updateDto,
+      });
+
+      jest.spyOn(featureFlagModel, "findOneAndUpdate").mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updatedFlag),
+      } as any);
+
+      const result = await service.update(
+        flagId,
+        updateDto,
+        projectId,
+        organizationId
+      );
+
+      expect(result).toEqual(updatedFlag);
+      expect(featureFlagModel.findOneAndUpdate).toHaveBeenCalledWith(
+        {
+          _id: new Types.ObjectId(flagId),
+          project: new Types.ObjectId(projectId),
+          $or: [
+            { isArchived: { $ne: true } },
+            { isArchived: { $exists: false } },
+          ],
+        },
+        { $set: updateDto },
+        { new: true }
+      );
+      expect(gateway.emitFlagUpdate).toHaveBeenCalledWith(updatedFlag);
+    });
+
+    it("should throw NotFoundException when flag not found", async () => {
+      const projectId = mockProjectId.toString();
+      const organizationId = mockOrgId.toString();
+      const flagId = new Types.ObjectId().toString();
+      const updateDto = { description: "updated" };
+
+      jest.spyOn(featureFlagModel, "findOneAndUpdate").mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      } as any);
+
+      await expect(
+        service.update(flagId, updateDto, projectId, organizationId)
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe("archive", () => {
+    it("should archive a feature flag", async () => {
+      const projectId = mockProjectId.toString();
+      const organizationId = mockOrgId.toString();
+      const flagId = new Types.ObjectId().toString();
+
+      const archivedFlag = createMockFeatureFlag({
+        ...mockFeatureFlag,
+        isArchived: true,
+      });
+
+      jest.spyOn(projectModel, "findOne").mockResolvedValue(mockProject);
+      jest.spyOn(featureFlagModel, "findOneAndUpdate").mockReturnValue({
+        exec: jest.fn().mockResolvedValue(archivedFlag),
+      } as any);
+
+      await service.archive(flagId, projectId, organizationId);
+
+      expect(featureFlagModel.findOneAndUpdate).toHaveBeenCalledWith(
+        {
+          _id: new Types.ObjectId(flagId),
+          project: new Types.ObjectId(projectId),
+          isArchived: { $ne: true },
+        },
+        { $set: { isArchived: true } }
+      );
+      expect(gateway.emitFlagDeletion).toHaveBeenCalledWith(flagId);
+    });
+
+    it("should throw NotFoundException when flag not found for archiving", async () => {
+      const projectId = mockProjectId.toString();
+      const organizationId = mockOrgId.toString();
+      const flagId = new Types.ObjectId().toString();
+
+      jest.spyOn(projectModel, "findOne").mockResolvedValue(mockProject);
+      jest.spyOn(featureFlagModel, "findOneAndUpdate").mockResolvedValue(null);
+
+      await expect(
+        service.archive(flagId, projectId, organizationId)
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("should throw NotFoundException when project not found", async () => {
+      const projectId = mockProjectId.toString();
+      const organizationId = mockOrgId.toString();
+      const flagId = new Types.ObjectId().toString();
+
+      jest.spyOn(projectModel, "findOne").mockResolvedValue(null);
+
+      await expect(
+        service.archive(flagId, projectId, organizationId)
+      ).rejects.toThrow(NotFoundException);
+
+      expect(featureFlagModel.findOneAndUpdate).not.toHaveBeenCalled();
     });
   });
 });

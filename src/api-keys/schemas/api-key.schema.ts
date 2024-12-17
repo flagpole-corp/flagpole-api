@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document, Schema as MongooseSchema } from "mongoose";
+import { Document, Schema as MongooseSchema, Types } from "mongoose";
 import { Organization } from "../../organizations/schemas/organization.schema";
 import { Project } from "../../projects/schemas/project.schema";
 
@@ -16,14 +16,14 @@ export class ApiKey extends Document {
     ref: "Organization",
     required: true,
   })
-  organization: Organization;
+  organization: Types.ObjectId;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: "Project",
     required: true,
   })
-  project: Project;
+  project: Types.ObjectId;
 
   @Prop({ default: true })
   isActive: boolean;
