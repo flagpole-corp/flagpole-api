@@ -128,8 +128,8 @@ export class UsersService {
     // Send invitation email
     const inviteUrl = `${process.env.FRONTEND_URL}/accept-invite?token=${token}`;
 
-    await this.resend.emails.send({
-      from: "noreply@yourdomain.com",
+    const emailResponse = await this.resend.emails.send({
+      from: "onboarding@resend.dev",
       to: email,
       subject: "Invitation to join organization",
       html: `
@@ -139,6 +139,8 @@ export class UsersService {
         <p>This link will expire in 24 hours.</p>
       `,
     });
+
+    console.log("Email sent (test mode):", emailResponse);
 
     return user;
   }
