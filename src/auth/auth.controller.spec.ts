@@ -2,8 +2,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { UnauthorizedException } from "@nestjs/common";
+import { UserStatus } from "src/common/enums";
 
-// Mock the guards
 jest.mock("./guards/jwt-auth.guard", () => ({
   JwtAuthGuard: jest.fn().mockImplementation(() => ({
     canActivate: jest.fn().mockReturnValue(true),
@@ -25,8 +25,16 @@ describe("AuthController", () => {
     _id: "userId",
     id: "userId",
     email: "test@example.com",
-    organizations: [{ organization: "orgId" }],
+    status: UserStatus.ACTIVE,
+    organizations: [
+      {
+        organization: "orgId",
+        role: "member",
+        joinedAt: new Date(),
+      },
+    ],
     currentOrganization: "orgId",
+    projects: [],
   };
 
   // Mock login response
@@ -35,8 +43,15 @@ describe("AuthController", () => {
     user: {
       id: "userId",
       email: "test@example.com",
+      status: UserStatus.ACTIVE,
       currentOrganization: "orgId",
-      organizations: [{ organization: "orgId" }],
+      organizations: [
+        {
+          organization: "orgId",
+          role: "member",
+          joinedAt: expect.any(String),
+        },
+      ],
     },
   };
 
@@ -46,8 +61,16 @@ describe("AuthController", () => {
     email: "test@example.com",
     firstName: "John",
     lastName: "Doe",
+    status: UserStatus.ACTIVE,
     currentOrganization: "orgId",
-    organizations: [{ organization: "orgId" }],
+    organizations: [
+      {
+        organization: "orgId",
+        role: "member",
+        joinedAt: expect.any(String),
+      },
+    ],
+    projects: [],
   };
 
   beforeEach(async () => {

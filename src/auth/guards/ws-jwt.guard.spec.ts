@@ -3,8 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import { WsException } from "@nestjs/websockets";
 import { Socket } from "socket.io";
 import { WsJwtGuard } from "./ws-jwt.guard";
-import { UserRole } from "../schemas/user.schema";
-import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { UserRole } from "../../common/enums/auth";
 
 describe("WsJwtGuard", () => {
   let guard: WsJwtGuard;

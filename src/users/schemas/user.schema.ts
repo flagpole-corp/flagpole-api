@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Schema as MongooseSchema, Types } from "mongoose";
-import { Organization } from "../../organizations/schemas/organization.schema";
-import { AuthProvider, OrganizationRole } from "../../common/enums";
+import { OrganizationRole, UserStatus } from "../../common/enums";
+import { AuthProvider } from "src/common/enums/auth";
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -30,6 +30,19 @@ export class User extends Document {
   @Prop()
   avatar?: string;
 
+  @Prop({
+    type: String,
+    enum: UserStatus,
+    default: UserStatus.PENDING,
+  })
+  status: UserStatus;
+
+  @Prop()
+  invitationToken?: string;
+
+  @Prop()
+  invitationTokenExpires?: Date;
+
   @Prop([
     {
       organization: { type: Types.ObjectId, ref: "Organization" },
@@ -49,6 +62,17 @@ export class User extends Document {
 
   @Prop({ type: Types.ObjectId, ref: "Organization" })
   currentOrganization?: Types.ObjectId;
+
+  @Prop([
+    {
+      project: { type: Types.ObjectId, ref: "Project" },
+      addedAt: { type: Date, default: Date.now },
+    },
+  ])
+  projects: Array<{
+    project: Types.ObjectId;
+    addedAt: Date;
+  }>;
 }
 
 export type UserDocument = User & Document;
@@ -57,6 +81,7 @@ export const UserSchema = SchemaFactory.createForClass(User);
 
 UserSchema.index({ email: 1 });
 UserSchema.index({ "organizations.organization": 1 });
+UserSchema.index({ invitationToken: 1 });
 
 // Virtual for full name
 UserSchema.virtual("fullName").get(function () {

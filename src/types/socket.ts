@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { UserRole } from "../auth/schemas/user.schema";
+import { UserRole } from "../common/enums/auth";
 
 export interface JwtPayload {
   sub: string;

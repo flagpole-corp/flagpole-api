@@ -3,11 +3,11 @@ import { JwtService } from "@nestjs/jwt";
 import { getModelToken } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { AuthService } from "./auth.service";
-import { User, UserDocument } from "./schemas/user.schema";
+import { User, UserDocument } from "../users/schemas/user.schema";
 import * as bcrypt from "bcrypt";
 import { UnauthorizedException } from "@nestjs/common";
+import { UserStatus } from "src/common/enums";
 
-// Mock factory for Mongoose model
 const createMockMongooseModel = () => {
   const mockModel = function (dto: any) {
     return {
@@ -74,6 +74,27 @@ describe("AuthService", () => {
       expect(result).toBeNull();
     });
 
+    it("should return null for inactive user", async () => {
+      const inactiveUser = {
+        email: "test@example.com",
+        password: "hashedPassword",
+        status: UserStatus.INVITED,
+        toObject: jest.fn().mockReturnValue({
+          email: "test@example.com",
+          password: "hashedPassword",
+          status: UserStatus.INVITED,
+        }),
+      };
+
+      MockUserModel.findOne.mockImplementationOnce(() => ({
+        select: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValueOnce(inactiveUser),
+      }));
+
+      const result = await service.validateUser("test@example.com", "password");
+      expect(result).toBeNull();
+    });
+
     it("should return null for user without password (Google auth)", async () => {
       const googleUser = {
         email: "test@example.com",
@@ -94,9 +115,11 @@ describe("AuthService", () => {
       const user = {
         email: "test@example.com",
         password: "hashedPassword",
+        status: UserStatus.ACTIVE,
         toObject: jest.fn().mockReturnValue({
           email: "test@example.com",
           password: "hashedPassword",
+          status: UserStatus.ACTIVE,
         }),
       };
 
@@ -119,6 +142,7 @@ describe("AuthService", () => {
       const mockUser = {
         _id: "userId",
         email: "test@example.com",
+        status: "active",
         currentOrganization: "orgId",
         organizations: [{ organization: "orgId" }],
         save: jest.fn(),
@@ -131,6 +155,7 @@ describe("AuthService", () => {
         user: {
           id: "userId",
           email: "test@example.com",
+          status: "active",
           currentOrganization: "orgId",
           organizations: [{ organization: "orgId" }],
         },
@@ -141,6 +166,7 @@ describe("AuthService", () => {
       const mockUser = {
         _id: "userId",
         email: "test@example.com",
+        status: "active",
         currentOrganization: undefined,
         organizations: [{ organization: "orgId" }],
         save: jest.fn(),
@@ -149,9 +175,40 @@ describe("AuthService", () => {
       await service.login(mockUser as unknown as UserDocument);
       expect(mockUser.save).toHaveBeenCalled();
     });
+
+    it("should throw UnauthorizedException when user is not active", async () => {
+      const mockUser = {
+        _id: "userId",
+        email: "test@example.com",
+        status: "invited",
+        currentOrganization: "orgId",
+        organizations: [{ organization: "orgId" }],
+        save: jest.fn(),
+      };
+
+      await expect(
+        service.login(mockUser as unknown as UserDocument)
+      ).rejects.toThrow(UnauthorizedException);
+    });
   });
 
   describe("validateGoogleUser", () => {
+    it("should not update invited user", async () => {
+      const invitedUser = {
+        email: "test@example.com",
+        status: UserStatus.INVITED,
+      };
+
+      MockUserModel.findOne.mockResolvedValueOnce(invitedUser);
+
+      await expect(
+        service.validateGoogleUser({
+          email: "test@example.com",
+          googleId: "google123",
+        })
+      ).rejects.toThrow();
+    });
+
     it("should update existing user with googleId if not present", async () => {
       const existingUser = {
         email: "test@example.com",
@@ -173,7 +230,7 @@ describe("AuthService", () => {
       expect(result.googleId).toBe("google123");
     });
 
-    it("should create new user if not exists", async () => {
+    it("should create new active user if not exists", async () => {
       MockUserModel.findOne.mockResolvedValueOnce(null);
 
       const result = await service.validateGoogleUser({
@@ -185,7 +242,7 @@ describe("AuthService", () => {
       expect(result.email).toBe("new@example.com");
       expect(result.googleId).toBe("google123");
       expect(result.provider).toBe("google");
-      expect(result.roles).toEqual(["user"]);
+      expect(result.status).toBe(UserStatus.ACTIVE);
     });
   });
 

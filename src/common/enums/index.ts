@@ -1,10 +1,5 @@
 export * from "./subscription.enum"; // Export everything from subscription.enum
 
-export enum AuthProvider {
-  LOCAL = "local",
-  GOOGLE = "google",
-}
-
 export enum OrganizationRole {
   OWNER = "owner",
   ADMIN = "admin",
@@ -22,4 +17,11 @@ export enum ProjectRole {
   ADMIN = "admin",
   MEMBER = "member",
   VIEWER = "viewer",
+}
+
+export enum UserStatus {
+  PENDING = "pending",
+  ACTIVE = "active",
+  INVITED = "invited",
+  INACTIVE = "inactive",
 }

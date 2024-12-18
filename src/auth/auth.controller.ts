@@ -17,7 +17,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from "@nestjs/swagger";
-import { UserDocument } from "./schemas/user.schema";
+import { UserDocument } from "../users/schemas/user.schema";
 import { LoginDto } from "./dto/login.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 

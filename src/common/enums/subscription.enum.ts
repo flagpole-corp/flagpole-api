@@ -10,7 +10,7 @@ export enum SubscriptionStatus {
   TRIAL = "trial",
   EXPIRED = "expired",
   CANCELLED = "cancelled",
-  INACTIVE = "inactive", // Added from your index.ts if you still need it
+  INACTIVE = "inactive",
 }
 
 export interface PlanLimits {

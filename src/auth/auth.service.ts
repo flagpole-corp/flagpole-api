@@ -2,8 +2,9 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { User, UserDocument } from "./schemas/user.schema";
+import { User, UserDocument } from "../users/schemas/user.schema";
 import * as bcrypt from "bcrypt";
+import { UserStatus } from "src/common/enums";
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,10 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userModel
-      .findOne({ email })
+      .findOne({
+        email,
+        status: UserStatus.ACTIVE,
+      })
       .select("+password")
       .exec();
 
@@ -22,7 +26,6 @@ export class AuthService {
       return null;
     }
 
-    // Check if user has a password (they might be Google-auth only)
     if (!user.password) {
       return null;
     }
@@ -39,6 +42,10 @@ export class AuthService {
   }
 
   async login(user: UserDocument) {
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException("Account is not active");
+    }
+
     if (!user.currentOrganization && user.organizations?.length > 0) {
       user.currentOrganization = user.organizations[0].organization;
       await user.save();
@@ -50,13 +57,12 @@ export class AuthService {
       currentOrganization: user.currentOrganization?.toString(),
     };
 
-    console.log({ payload });
-
     return {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user._id.toString(),
         email: user.email,
+        status: user.status,
         currentOrganization: user.currentOrganization?.toString(),
         organizations: user.organizations,
       },
@@ -64,12 +70,15 @@ export class AuthService {
   }
 
   async validateGoogleUser(details: { email: string; googleId: string }) {
-    let user = await this.userModel.findOne({ email: details.email });
+    const user = await this.userModel.findOne({
+      email: details.email,
+      status: { $ne: UserStatus.INVITED },
+    });
 
     if (user) {
       if (!user.googleId) {
         user.googleId = details.googleId;
-        user = await user.save();
+        await user.save();
       }
       return user;
     }
@@ -79,7 +88,7 @@ export class AuthService {
       email: details.email,
       googleId: details.googleId,
       provider: "google",
-      roles: ["user"],
+      status: UserStatus.ACTIVE,
     });
 
     return newUser.save();
@@ -103,25 +112,28 @@ export class AuthService {
   async getCurrentUser(userId: string) {
     const user = await this.userModel
       .findById(userId)
-      .select("-password") // Exclude password
-      .populate("organizations.organization", "name slug subscriptionStatus")
+      .select("-password")
+      .populate("organizations.organization", "name")
+      .populate("projects.project", "name")
       .exec();
 
     if (!user) {
       throw new UnauthorizedException("User not found");
     }
 
-    console.log("getCurrentUser", { user });
     return {
       id: user._id.toString(),
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      status: user.status,
       currentOrganization: user.currentOrganization?.toString(),
       organizations: user.organizations.map((org) => ({
-        ...org,
         organization: org.organization.toString(),
+        role: org.role,
+        joinedAt: org.joinedAt,
       })),
+      projects: user.projects,
     };
   }
 

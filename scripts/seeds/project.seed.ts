@@ -14,8 +14,8 @@ export async function seedProjects(db: Db) {
 
     const projects = projectIds.map((id, index) => ({
       _id: id,
-      name: faker.company.catchPhrase(),
-      description: faker.lorem.paragraph(),
+      name: faker.company.name(),
+      description: faker.company.catchPhraseDescriptor(),
       organization: index < 5 ? orgId : orgIds[index % orgIds.length],
       status: faker.helpers.arrayElement(["active", "archived", "draft"]),
       members: [

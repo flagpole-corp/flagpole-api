@@ -5,7 +5,7 @@ import { ConfigService, ConfigModule } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { User, UserSchema } from "./schemas/user.schema";
+import { User, UserSchema } from "../users/schemas/user.schema";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { LocalStrategy } from "./strategies/local.strategy";
 import { GoogleStrategy } from "./strategies/google.strategy";

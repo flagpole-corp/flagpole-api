@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { WsException } from "@nestjs/websockets";
 import { Socket } from "socket.io";
-import { UserRole } from "../schemas/user.schema";
+import { UserRole } from "../../common/enums/auth";
 
 // Define the JWT payload interface
 interface JwtPayload {

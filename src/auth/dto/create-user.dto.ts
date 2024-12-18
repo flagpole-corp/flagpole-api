@@ -7,7 +7,7 @@ import {
   MinLength,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { UserRole, AuthProvider } from "../schemas/user.schema";
+import { UserRole, AuthProvider } from "../../common/enums/auth";
 
 export class CreateUserDto {
   @ApiProperty({ example: "user@example.com" })
@@ -17,7 +17,7 @@ export class CreateUserDto {
   @ApiProperty({ example: "password123", minLength: 6 })
   @IsString()
   @MinLength(6)
-  @IsOptional() // Optional because of Google auth
+  @IsOptional()
   password?: string;
 
   @ApiPropertyOptional({ example: "John" })
