@@ -7,6 +7,8 @@ import {
   UseGuards,
   Req,
   Param,
+  Patch,
+  Delete,
 } from "@nestjs/common";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { CurrentOrganization } from "src/common/decorators/organization.decorator";
@@ -15,6 +17,7 @@ import { ProjectsService } from "./projects.service";
 import { RequestWithUser } from "src/common/types/request";
 import { CreateProjectDto } from "./dto";
 import { SubscriptionLimitsGuard } from "src/common/guards/subscription-limits.guard";
+import { UpdateProjectDto } from "./dto/update-project.dto";
 
 @Controller("projects")
 @UseGuards(JwtAuthGuard, OrganizationAuthGuard, SubscriptionLimitsGuard)
@@ -48,5 +51,22 @@ export class ProjectsController {
       organizationId,
       req.user._id.toString()
     );
+  }
+
+  @Patch(":id")
+  async update(
+    @Param("id") id: string,
+    @CurrentOrganization() organizationId: string,
+    @Body() updateProjectDto: UpdateProjectDto
+  ) {
+    return this.projectsService.update(id, organizationId, updateProjectDto);
+  }
+
+  @Delete(":id")
+  async delete(
+    @Param("id") id: string,
+    @CurrentOrganization() organizationId: string
+  ) {
+    return this.projectsService.softDelete(id, organizationId);
   }
 }

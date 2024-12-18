@@ -9,6 +9,7 @@ import { Project } from "./schemas/project.schema";
 import { User } from "../users/schemas/user.schema";
 import { CreateProjectDto, AddProjectMemberDto } from "./dto";
 import { ProjectStatus, ProjectRole } from "../common/enums";
+import { UpdateProjectDto } from "./dto/update-project.dto";
 
 @Injectable()
 export class ProjectsService {
@@ -26,7 +27,7 @@ export class ProjectsService {
     // Always filter by organization
     const projects = await this.projectModel.find({
       organization: new Types.ObjectId(organizationId),
-      status: { $ne: ProjectStatus.DELETED },
+      status: { $ne: ProjectStatus.ARCHIVED },
     });
     console.log("ProjectsService - found projects:", projects);
     return projects;
@@ -36,7 +37,7 @@ export class ProjectsService {
     const project = await this.projectModel.findOne({
       _id: new Types.ObjectId(projectId),
       organization: new Types.ObjectId(organizationId), // Security check
-      status: { $ne: ProjectStatus.DELETED },
+      status: { $ne: ProjectStatus.ARCHIVED },
     });
 
     if (!project) {
@@ -66,9 +67,17 @@ export class ProjectsService {
     return project.save();
   }
 
-  async update(id: string, updateData: Partial<CreateProjectDto>) {
-    const project = await this.projectModel.findByIdAndUpdate(
-      id,
+  async update(
+    id: string,
+    organizationId: string,
+    updateData: UpdateProjectDto
+  ) {
+    const project = await this.projectModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(id),
+        organization: new Types.ObjectId(organizationId),
+        status: { $ne: ProjectStatus.ARCHIVED },
+      },
       { $set: updateData },
       { new: true }
     );
@@ -80,10 +89,14 @@ export class ProjectsService {
     return project;
   }
 
-  async softDelete(id: string) {
-    const project = await this.projectModel.findByIdAndUpdate(
-      id,
-      { status: ProjectStatus.DELETED },
+  async softDelete(id: string, organizationId: string) {
+    const project = await this.projectModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(id),
+        organization: new Types.ObjectId(organizationId),
+        status: { $ne: ProjectStatus.ARCHIVED },
+      },
+      { status: ProjectStatus.ARCHIVED },
       { new: true }
     );
 
@@ -145,7 +158,7 @@ export class ProjectsService {
     return this.projectModel
       .find({
         organization: new Types.ObjectId(organizationId),
-        status: { $ne: ProjectStatus.DELETED },
+        status: { $ne: ProjectStatus.ARCHIVED },
       })
       .sort({ createdAt: -1 });
   }
@@ -154,7 +167,7 @@ export class ProjectsService {
     return this.projectModel
       .find({
         "members.user": new Types.ObjectId(userId),
-        status: { $ne: ProjectStatus.DELETED },
+        status: { $ne: ProjectStatus.ARCHIVED },
       })
       .sort({ createdAt: -1 });
   }
