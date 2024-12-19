@@ -78,11 +78,11 @@ describe("AuthService", () => {
       const inactiveUser = {
         email: "test@example.com",
         password: "hashedPassword",
-        status: UserStatus.INVITED,
+        status: UserStatus.PENDING,
         toObject: jest.fn().mockReturnValue({
           email: "test@example.com",
           password: "hashedPassword",
-          status: UserStatus.INVITED,
+          status: UserStatus.PENDING,
         }),
       };
 
@@ -196,7 +196,7 @@ describe("AuthService", () => {
     it("should not update invited user", async () => {
       const invitedUser = {
         email: "test@example.com",
-        status: UserStatus.INVITED,
+        status: UserStatus.PENDING,
       };
 
       MockUserModel.findOne.mockResolvedValueOnce(invitedUser);

@@ -72,7 +72,7 @@ export class AuthService {
   async validateGoogleUser(details: { email: string; googleId: string }) {
     const user = await this.userModel.findOne({
       email: details.email,
-      status: { $ne: UserStatus.INVITED },
+      status: { $ne: UserStatus.PENDING },
     });
 
     if (user) {

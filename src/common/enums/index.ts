@@ -22,6 +22,5 @@ export enum ProjectRole {
 export enum UserStatus {
   PENDING = "pending",
   ACTIVE = "active",
-  INVITED = "invited",
   INACTIVE = "inactive",
 }

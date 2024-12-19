@@ -59,12 +59,7 @@ export async function seedUsers(db: Db) {
           password: defaultPassword,
           firstName: `User`,
           lastName: `${index + 1}`,
-          status: faker.helpers.arrayElement([
-            "pending",
-            "active",
-            "invited",
-            "inactive",
-          ]),
+          status: faker.helpers.arrayElement(["pending", "active", "inactive"]),
           provider: index % 3 === 0 ? "google" : "local",
           organizations: [
             {

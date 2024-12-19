@@ -52,12 +52,14 @@ export class User extends Document {
         default: OrganizationRole.MEMBER,
       },
       joinedAt: { type: Date, default: Date.now },
+      removedAt: { type: Date },
     },
   ])
   organizations: Array<{
     organization: Types.ObjectId;
     role: OrganizationRole;
     joinedAt: Date;
+    removedAt?: Date;
   }>;
 
   @Prop({ type: Types.ObjectId, ref: "Organization" })

@@ -81,7 +81,7 @@ export class UsersService {
       // Create new user if doesn't exist
       user = new this.userModel({
         email,
-        status: UserStatus.INVITED,
+        status: UserStatus.PENDING,
         invitationToken: token,
         invitationTokenExpires: tokenExpires,
         organizations: [
@@ -99,7 +99,7 @@ export class UsersService {
       });
     } else {
       // Update existing user
-      user.status = UserStatus.INVITED;
+      user.status = UserStatus.PENDING;
       user.invitationToken = token;
       user.invitationTokenExpires = tokenExpires;
 
@@ -149,7 +149,7 @@ export class UsersService {
     const user = await this.userModel.findOne({
       invitationToken: token,
       invitationTokenExpires: { $gt: new Date() },
-      status: UserStatus.INVITED,
+      status: UserStatus.PENDING,
     });
 
     if (!user) {
@@ -202,5 +202,68 @@ export class UsersService {
     }));
 
     return user.save();
+  }
+
+  async deleteUser(userId: string, organizationId: string) {
+    const user = await this.userModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(userId),
+        "organizations.organization": new Types.ObjectId(organizationId),
+      },
+      {
+        $set: {
+          status: "inactive",
+          currentOrganization: null,
+          "organizations.$.removedAt": new Date(),
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    return user;
+  }
+
+  async resendInvitation(userId: string, organizationId: string) {
+    const user = await this.userModel.findOne({
+      _id: new Types.ObjectId(userId),
+      status: "pending",
+      "organizations.organization": new Types.ObjectId(organizationId),
+    });
+
+    if (!user) {
+      throw new NotFoundException("Pending user not found");
+    }
+
+    // Generate new token
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenExpires = new Date();
+    tokenExpires.setHours(tokenExpires.getHours() + 24);
+
+    user.invitationToken = token;
+    user.invitationTokenExpires = tokenExpires;
+    await user.save();
+
+    // Send new invitation email
+    const inviteUrl = `${process.env.FRONTEND_URL}/accept-invite?token=${token}`;
+    await this.resend.emails.send({
+      from: "onboarding@resend.dev",
+      to: user.email,
+      subject: "Invitation to join organization (Resent)",
+      html: `
+        <h1>Your invitation has been resent</h1>
+        <p>Click the link below to accept your invitation:</p>
+        <a href="${inviteUrl}">${inviteUrl}</a>
+        <p>This link will expire in 24 hours.</p>
+      `,
+    });
+
+    return user;
   }
 }

@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Patch,
+  Delete,
 } from "@nestjs/common";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { OrganizationAuthGuard } from "../common/guards/organization-auth.guard";
@@ -72,5 +73,21 @@ export class UsersController {
       id,
       updateUserProjectsDto.projects
     );
+  }
+
+  @Delete(":id")
+  async deleteUser(
+    @Param("id") id: string,
+    @CurrentOrganization() organizationId: string
+  ) {
+    return this.usersService.deleteUser(id, organizationId);
+  }
+
+  @Post(":id/resend-invitation")
+  async resendInvitation(
+    @Param("id") id: string,
+    @CurrentOrganization() organizationId: string
+  ) {
+    return this.usersService.resendInvitation(id, organizationId);
   }
 }
